@@ -1,378 +1,693 @@
-import React from 'react';
-import { MapPin, Navigation } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
+import { Navigation, MapPin, Compass, RotateCcw } from 'lucide-react';
 
-export default function TruckSuccessAnimation({ fromCity = '', toCity = '', lrNo = '', vehicleNo = '' }) {
+export default function TruckSuccessAnimation({ 
+  fromCity = '', 
+  toCity = '', 
+  lrNo = '', 
+  vehicleNo = '' 
+}) {
+  const containerRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [isInteractingState, setIsInteractingState] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const canvas = canvasRef.current;
+    if (!container || !canvas) return;
+
+    // 1. Scene Setup
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x09090b);
+    scene.fog = new THREE.FogExp2(0x09090b, 0.038);
+
+    // 2. Camera Setup
+    const camera = new THREE.PerspectiveCamera(
+      42,
+      container.clientWidth / container.clientHeight,
+      0.1,
+      80
+    );
+
+    // Initial cinematic starting position: dramatic low front 3/4 angle
+    const frontPos = new THREE.Vector3(1.2, 1.35, 6.0);
+    const frontTarget = new THREE.Vector3(0, 1.15, 1.6);
+
+    // Canonical sideview profile: pure side profile of the container truck
+    const sidePos = new THREE.Vector3(6.8, 1.95, 0.0);
+    const sideTarget = new THREE.Vector3(0, 1.35, 0.0);
+
+    camera.position.copy(frontPos);
+    camera.lookAt(frontTarget);
+
+    // 3. WebGL Renderer
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      powerPreference: 'high-performance',
+      alpha: false
+    });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+
+    // 4. Lighting
+    const ambientLight = new THREE.AmbientLight(0x334155, 1.2);
+    scene.add(ambientLight);
+
+    // Main moonlight / overhead highway light
+    const dirLight = new THREE.DirectionalLight(0xe2e8f0, 2.2);
+    dirLight.position.set(7, 12, 6);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 1024;
+    dirLight.shadow.mapSize.height = 1024;
+    dirLight.shadow.bias = -0.0005;
+    scene.add(dirLight);
+
+    // Subtle cyan rim light from opposite side
+    const rimLight = new THREE.DirectionalLight(0x0284c7, 0.9);
+    rimLight.position.set(-8, 5, -5);
+    scene.add(rimLight);
+
+    // 5. Build Detailed Procedural 3D Truck
+    const truckGroup = new THREE.Group();
+    scene.add(truckGroup);
+
+    // Materials
+    const chassisMat = new THREE.MeshStandardMaterial({
+      color: 0x18181b,
+      metalness: 0.85,
+      roughness: 0.35
+    });
+
+    const chromeMat = new THREE.MeshStandardMaterial({
+      color: 0xe4e4e7,
+      metalness: 0.92,
+      roughness: 0.15
+    });
+
+    const cabPaintMat = new THREE.MeshStandardMaterial({
+      color: 0x047857, // Deep rich fleet emerald
+      metalness: 0.55,
+      roughness: 0.28
+    });
+
+    const containerMat = new THREE.MeshStandardMaterial({
+      color: 0x065f46, // Container fleet green
+      metalness: 0.45,
+      roughness: 0.4
+    });
+
+    const glassMat = new THREE.MeshStandardMaterial({
+      color: 0x0f172a,
+      metalness: 0.95,
+      roughness: 0.08,
+      transparent: true,
+      opacity: 0.85
+    });
+
+    const tireMat = new THREE.MeshStandardMaterial({
+      color: 0x18181b,
+      roughness: 0.92,
+      metalness: 0.1
+    });
+
+    const wheelRimMat = new THREE.MeshStandardMaterial({
+      color: 0xd4d4d8,
+      metalness: 0.85,
+      roughness: 0.2
+    });
+
+    const headlightMat = new THREE.MeshStandardMaterial({
+      color: 0xfef08a,
+      emissive: 0xfef08a,
+      emissiveIntensity: 2.5
+    });
+
+    const taillightMat = new THREE.MeshStandardMaterial({
+      color: 0xef4444,
+      emissive: 0xef4444,
+      emissiveIntensity: 2.0
+    });
+
+    // 5a. Chassis Beams
+    const leftBeam = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.2, 6.2), chassisMat);
+    leftBeam.position.set(-0.45, 0.65, 0);
+    leftBeam.castShadow = true;
+    truckGroup.add(leftBeam);
+
+    const rightBeam = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.2, 6.2), chassisMat);
+    rightBeam.position.set(0.45, 0.65, 0);
+    rightBeam.castShadow = true;
+    truckGroup.add(rightBeam);
+
+    // Cross members
+    for (let z = -2.6; z <= 2.6; z += 1.0) {
+      const cross = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.12, 0.1), chassisMat);
+      cross.position.set(0, 0.65, z);
+      truckGroup.add(cross);
+    }
+
+    // Fuel tanks (cylindrical, left and right)
+    const tankGeo = new THREE.CylinderGeometry(0.24, 0.24, 1.4, 16);
+    tankGeo.rotateX(Math.PI / 2);
+    const leftTank = new THREE.Mesh(tankGeo, chromeMat);
+    leftTank.position.set(-0.75, 0.55, 0.2);
+    leftTank.castShadow = true;
+    truckGroup.add(leftTank);
+
+    const rightTank = new THREE.Mesh(tankGeo, chromeMat);
+    rightTank.position.set(0.75, 0.55, 0.2);
+    rightTank.castShadow = true;
+    truckGroup.add(rightTank);
+
+    // Battery / Tool box
+    const toolBox = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 0.7), chassisMat);
+    toolBox.position.set(-0.72, 0.55, -1.1);
+    truckGroup.add(toolBox);
+
+    // Rear bumper bar
+    const rearBumper = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.12, 0.1), chromeMat);
+    rearBumper.position.set(0, 0.45, -3.1);
+    truckGroup.add(rearBumper);
+
+    // 5b. Cabin Tractor Body
+    const cabinGroup = new THREE.Group();
+    cabinGroup.position.set(0, 0.75, 1.95);
+    truckGroup.add(cabinGroup);
+
+    // Main cab lower block
+    const cabLower = new THREE.Mesh(new THREE.BoxGeometry(1.85, 1.0, 1.6), cabPaintMat);
+    cabLower.position.set(0, 0.5, 0);
+    cabLower.castShadow = true;
+    cabinGroup.add(cabLower);
+
+    // Cab upper block with angled roof
+    const cabUpper = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.8, 1.45), cabPaintMat);
+    cabUpper.position.set(0, 1.35, -0.05);
+    cabUpper.castShadow = true;
+    cabinGroup.add(cabUpper);
+
+    // Wind deflector / roof aerodynamic spoiler
+    const spoiler = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.3, 0.9), cabPaintMat);
+    spoiler.position.set(0, 1.85, -0.25);
+    spoiler.rotation.x = -0.15;
+    cabinGroup.add(spoiler);
+
+    // Front Windshield
+    const windshield = new THREE.Mesh(new THREE.BoxGeometry(1.68, 0.62, 0.06), glassMat);
+    windshield.position.set(0, 1.35, 0.7);
+    windshield.rotation.x = -0.12;
+    cabinGroup.add(windshield);
+
+    // Side windows
+    const leftWin = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.48, 0.75), glassMat);
+    leftWin.position.set(-0.92, 1.35, 0.05);
+    cabinGroup.add(leftWin);
+
+    const rightWin = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.48, 0.75), glassMat);
+    rightWin.position.set(0.92, 1.35, 0.05);
+    cabinGroup.add(rightWin);
+
+    // Front Grille
+    const grille = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.55, 0.06), chromeMat);
+    grille.position.set(0, 0.45, 0.81);
+    cabinGroup.add(grille);
+
+    // Grille slats
+    for (let y = 0.28; y <= 0.62; y += 0.1) {
+      const slat = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.03, 0.08), chassisMat);
+      slat.position.set(0, y, 0.82);
+      cabinGroup.add(slat);
+    }
+
+    // Front bumper
+    const bumper = new THREE.Mesh(new THREE.BoxGeometry(1.92, 0.28, 0.25), chassisMat);
+    bumper.position.set(0, 0.12, 0.8);
+    bumper.castShadow = true;
+    cabinGroup.add(bumper);
+
+    // Headlights
+    const leftHeadlight = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.14, 0.08), headlightMat);
+    leftHeadlight.position.set(-0.68, 0.15, 0.93);
+    cabinGroup.add(leftHeadlight);
+
+    const rightHeadlight = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.14, 0.08), headlightMat);
+    rightHeadlight.position.set(0.68, 0.15, 0.93);
+    cabinGroup.add(rightHeadlight);
+
+    // Spotlights shining forward from headlights
+    const spotL = new THREE.SpotLight(0xfef08a, 4.0, 18, Math.PI / 5, 0.4, 1.2);
+    spotL.position.set(-0.68, 0.9, 2.9);
+    spotL.target.position.set(-0.68, 0, 10);
+    scene.add(spotL);
+    scene.add(spotL.target);
+
+    const spotR = new THREE.SpotLight(0xfef08a, 4.0, 18, Math.PI / 5, 0.4, 1.2);
+    spotR.position.set(0.68, 0.9, 2.9);
+    spotR.target.position.set(0.68, 0, 10);
+    scene.add(spotR);
+    scene.add(spotR.target);
+
+    // Side mirrors
+    const mirrorStemGeo = new THREE.BoxGeometry(0.04, 0.04, 0.25);
+    const mirrorGlassGeo = new THREE.BoxGeometry(0.08, 0.32, 0.15);
+
+    const leftStem = new THREE.Mesh(mirrorStemGeo, chassisMat);
+    leftStem.position.set(-1.02, 1.35, 0.55);
+    cabinGroup.add(leftStem);
+    const leftMirror = new THREE.Mesh(mirrorGlassGeo, chromeMat);
+    leftMirror.position.set(-1.14, 1.35, 0.65);
+    cabinGroup.add(leftMirror);
+
+    const rightStem = new THREE.Mesh(mirrorStemGeo, chassisMat);
+    rightStem.position.set(1.02, 1.35, 0.55);
+    cabinGroup.add(rightStem);
+    const rightMirror = new THREE.Mesh(mirrorGlassGeo, chromeMat);
+    rightMirror.position.set(1.14, 1.35, 0.65);
+    cabinGroup.add(rightMirror);
+
+    // Chrome vertical exhaust stack behind cabin
+    const exhaustGeo = new THREE.CylinderGeometry(0.06, 0.06, 1.8, 12);
+    const exhaust = new THREE.Mesh(exhaustGeo, chromeMat);
+    exhaust.position.set(-0.7, 1.5, -0.85);
+    cabinGroup.add(exhaust);
+
+    // 5c. Cargo Container Trailer Body
+    const containerGroup = new THREE.Group();
+    containerGroup.position.set(0, 1.8, -1.05);
+    truckGroup.add(containerGroup);
+
+    // Main container body box
+    const containerMain = new THREE.Mesh(new THREE.BoxGeometry(1.95, 2.05, 4.3), containerMat);
+    containerMain.castShadow = true;
+    containerGroup.add(containerMain);
+
+    // Container corrugation vertical ribs along both sides
+    for (let z = -1.95; z <= 1.95; z += 0.3) {
+      const ribL = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.95, 0.08), chassisMat);
+      ribL.position.set(-0.99, 0, z);
+      containerGroup.add(ribL);
+
+      const ribR = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.95, 0.08), chassisMat);
+      ribR.position.set(0.99, 0, z);
+      containerGroup.add(ribR);
+    }
+
+    // Rear container door lock bars
+    const lockBarL = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.8, 8), chromeMat);
+    lockBarL.position.set(-0.35, 0, -2.17);
+    containerGroup.add(lockBarL);
+
+    const lockBarR = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.8, 8), chromeMat);
+    lockBarR.position.set(0.35, 0, -2.17);
+    containerGroup.add(lockBarR);
+
+    // Rear Tail lights
+    const tailL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.1, 0.05), taillightMat);
+    tailL.position.set(-0.68, -0.9, -2.17);
+    containerGroup.add(tailL);
+
+    const tailR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.1, 0.05), taillightMat);
+    tailR.position.set(0.68, -0.9, -2.17);
+    containerGroup.add(tailR);
+
+    // 5d. Rotating Wheels & Axles
+    const wheels = [];
+    const wheelGeo = new THREE.CylinderGeometry(0.42, 0.42, 0.28, 20);
+    wheelGeo.rotateZ(Math.PI / 2);
+
+    const rimGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.29, 16);
+    rimGeo.rotateZ(Math.PI / 2);
+
+    const capGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.31, 10);
+    capGeo.rotateZ(Math.PI / 2);
+
+    function createWheel(x, y, z) {
+      const wGroup = new THREE.Group();
+      wGroup.position.set(x, y, z);
+
+      const tire = new THREE.Mesh(wheelGeo, tireMat);
+      tire.castShadow = true;
+      wGroup.add(tire);
+
+      const rim = new THREE.Mesh(rimGeo, wheelRimMat);
+      wGroup.add(rim);
+
+      const cap = new THREE.Mesh(capGeo, chromeMat);
+      wGroup.add(cap);
+
+      truckGroup.add(wGroup);
+      wheels.push(wGroup);
+    }
+
+    // Front Steer Axle (single wheels)
+    createWheel(-0.95, 0.42, 2.15);
+    createWheel(0.95, 0.42, 2.15);
+
+    // Drive Axle 1 (dual wheels)
+    createWheel(-0.95, 0.42, 0.35);
+    createWheel(0.95, 0.42, 0.35);
+
+    // Drive Axle 2
+    createWheel(-0.95, 0.42, -0.65);
+    createWheel(0.95, 0.42, -0.65);
+
+    // Trailer Rear Axles
+    createWheel(-0.95, 0.42, -2.1);
+    createWheel(0.95, 0.42, -2.1);
+    createWheel(-0.95, 0.42, -2.85);
+    createWheel(0.95, 0.42, -2.85);
+
+    // 6. Realistic Moving Highway Road
+    const roadGroup = new THREE.Group();
+    scene.add(roadGroup);
+
+    // Main asphalt highway plane
+    const roadMat = new THREE.MeshStandardMaterial({
+      color: 0x18181b,
+      roughness: 0.95,
+      metalness: 0.05
+    });
+    const roadPlane = new THREE.Mesh(new THREE.PlaneGeometry(16, 70), roadMat);
+    roadPlane.rotation.x = -Math.PI / 2;
+    roadPlane.position.y = 0;
+    roadPlane.receiveShadow = true;
+    roadGroup.add(roadPlane);
+
+    // White shoulder lines on road borders
+    const shoulderMat = new THREE.MeshBasicMaterial({ color: 0xe4e4e7 });
+    const shoulderL = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 70), shoulderMat);
+    shoulderL.rotation.x = -Math.PI / 2;
+    shoulderL.position.set(-2.8, 0.005, 0);
+    roadGroup.add(shoulderL);
+
+    const shoulderR = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 70), shoulderMat);
+    shoulderR.rotation.x = -Math.PI / 2;
+    shoulderR.position.set(2.8, 0.005, 0);
+    roadGroup.add(shoulderR);
+
+    // Yellow moving dashed divider stripes
+    const dashMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+    const dashGeo = new THREE.PlaneGeometry(0.18, 2.8);
+    dashGeo.rotateX(-Math.PI / 2);
+
+    const roadDashes = [];
+    for (let z = -32; z <= 32; z += 5.5) {
+      const dash = new THREE.Mesh(dashGeo, dashMat);
+      dash.position.set(0, 0.006, z);
+      roadGroup.add(dash);
+      roadDashes.push(dash);
+    }
+
+    // 7. Wind / Speed Lines Moving Past
+    const windStreaks = [];
+    const windMat = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.35
+    });
+    const windGeo = new THREE.CylinderGeometry(0.012, 0.012, 2.2, 4);
+    windGeo.rotateX(Math.PI / 2);
+
+    for (let i = 0; i < 28; i++) {
+      const streak = new THREE.Mesh(windGeo, windMat);
+      streak.position.set(
+        (Math.random() - 0.5) * 6.5,
+        0.4 + Math.random() * 2.8,
+        (Math.random() - 0.5) * 24
+      );
+      streak.speed = 22 + Math.random() * 16;
+      scene.add(streak);
+      windStreaks.push(streak);
+    }
+
+    // 8. Animation & Camera Choreography State
+    let startTime = performance.now();
+    let isInteracting = false;
+    let yaw = 0;
+    let pitch = 0.22;
+    let distance = 6.8;
+
+    // Sideview target spherical coordinates
+    const targetYaw = 0;
+    const targetPitch = 0.20;
+    const targetDistance = 6.8;
+
+    // 9. Interactive Touch / Mouse Orbit Controls
+    let isPointerDown = false;
+    let prevPointerX = 0;
+    let prevPointerY = 0;
+    let pinchStartDist = 0;
+    let isPinching = false;
+
+    const onPointerDown = (e) => {
+      isPointerDown = true;
+      isInteracting = true;
+      setIsInteractingState(true);
+      setHasInteracted(true);
+      prevPointerX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+      prevPointerY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+    };
+
+    const onTouchStart = (e) => {
+      if (e.touches.length === 2) {
+        isPinching = true;
+        isInteracting = true;
+        setIsInteractingState(true);
+        setHasInteracted(true);
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        pinchStartDist = Math.hypot(dx, dy);
+      } else if (e.touches.length === 1) {
+        onPointerDown(e.touches[0]);
+      }
+    };
+
+    const onPointerMove = (e) => {
+      if (!isPointerDown) return;
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+
+      const deltaX = clientX - prevPointerX;
+      const deltaY = clientY - prevPointerY;
+      prevPointerX = clientX;
+      prevPointerY = clientY;
+
+      yaw += deltaX * 0.009;
+      pitch = Math.max(-0.25, Math.min(1.1, pitch + deltaY * 0.007));
+    };
+
+    const onTouchMove = (e) => {
+      if (isPinching && e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const currentDist = Math.hypot(dx, dy);
+        if (pinchStartDist > 0) {
+          const ratio = pinchStartDist / currentDist;
+          distance = Math.max(3.8, Math.min(11.5, distance * ratio));
+          pinchStartDist = currentDist;
+        }
+      } else if (e.touches.length === 1) {
+        onPointerMove(e.touches[0]);
+      }
+    };
+
+    const onPointerUp = () => {
+      isPointerDown = false;
+      isPinching = false;
+      isInteracting = false;
+      setIsInteractingState(false);
+    };
+
+    const onWheel = (e) => {
+      e.preventDefault();
+      isInteracting = true;
+      setIsInteractingState(true);
+      setHasInteracted(true);
+      distance = Math.max(3.8, Math.min(11.5, distance + e.deltaY * 0.006));
+      clearTimeout(window._wheelResetTimer);
+      window._wheelResetTimer = setTimeout(() => {
+        isInteracting = false;
+        setIsInteractingState(false);
+      }, 700);
+    };
+
+    canvas.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+
+    canvas.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onPointerUp);
+    canvas.addEventListener('wheel', onWheel, { passive: false });
+
+    // 10. Render Loop
+    let animId;
+    const roadSpeed = 14.0; // Units per second forward
+    let prevTime = performance.now();
+
+    const animate = () => {
+      animId = requestAnimationFrame(animate);
+
+      const now = performance.now();
+      const dt = Math.min(0.08, (now - prevTime) / 1000);
+      prevTime = now;
+      const elapsed = (now - startTime) / 1000;
+
+      // 10a. Truck engine suspension vibration
+      truckGroup.position.y = Math.sin(elapsed * 18) * 0.018;
+      truckGroup.rotation.z = Math.sin(elapsed * 9) * 0.004;
+
+      // 10b. Rotate all wheels continuously proportional to road speed
+      const wheelAngularSpeed = roadSpeed / 0.42;
+      wheels.forEach((w) => {
+        w.rotation.x += wheelAngularSpeed * dt;
+      });
+
+      // 10c. Stream yellow road dashes backward along -Z to simulate forward speed
+      roadDashes.forEach((dash) => {
+        dash.position.z -= roadSpeed * dt;
+        if (dash.position.z < -30) {
+          dash.position.z += 60;
+        }
+      });
+
+      // 10d. Stream wind streaks backward
+      windStreaks.forEach((streak) => {
+        streak.position.z -= streak.speed * dt;
+        if (streak.position.z < -18) {
+          streak.position.z = 18 + Math.random() * 6;
+          streak.position.y = 0.4 + Math.random() * 2.8;
+          streak.position.x = (Math.random() - 0.5) * 6.5;
+        }
+      });
+
+      // 10e. Camera Movement Choreography:
+      // Starts from the front of the truck (low dramatic 3/4 front angle)
+      // Rolls around to side profile by ~2.6 seconds, and stays in side profile!
+      // If user drags/pinches, it follows user; on leave, smoothly lerps back to side profile.
+      if (!isInteracting) {
+        if (elapsed < 2.6) {
+          // Cinematic Intro: Front -> Sideview smooth cubic arc
+          const progress = Math.min(1, elapsed / 2.6);
+          // Ease in-out cubic
+          const t = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+          camera.position.lerpVectors(frontPos, sidePos, t);
+          const currentTarget = new THREE.Vector3().lerpVectors(frontTarget, sideTarget, t);
+          camera.lookAt(currentTarget);
+
+          // Sync user orbit variables with current camera arc
+          yaw = 0;
+          pitch = THREE.MathUtils.lerp(0.26, targetPitch, t);
+          distance = THREE.MathUtils.lerp(6.0, targetDistance, t);
+        } else {
+          // Stay in sideview & smoothly spring back when user leaves
+          yaw = THREE.MathUtils.lerp(yaw, targetYaw, 0.06);
+          pitch = THREE.MathUtils.lerp(pitch, targetPitch, 0.06);
+          distance = THREE.MathUtils.lerp(distance, targetDistance, 0.06);
+
+          // Calculate spherical camera position looking from sideview at truck center
+          const cx = sideTarget.x + distance * Math.cos(pitch) * Math.cos(yaw);
+          const cy = sideTarget.y + distance * Math.sin(pitch);
+          const cz = sideTarget.z + distance * Math.cos(pitch) * Math.sin(yaw);
+
+          camera.position.set(cx, cy, cz);
+          camera.lookAt(sideTarget);
+        }
+      } else {
+        // User is interacting: calculate orbit around truck
+        const cx = sideTarget.x + distance * Math.cos(pitch) * Math.cos(yaw);
+        const cy = sideTarget.y + distance * Math.sin(pitch);
+        const cz = sideTarget.z + distance * Math.cos(pitch) * Math.sin(yaw);
+
+        camera.position.set(cx, cy, cz);
+        camera.lookAt(sideTarget);
+      }
+
+      renderer.render(scene, camera);
+    };
+
+    animate();
+
+    // 11. Resize Observer
+    const resizeObserver = new ResizeObserver(() => {
+      if (!container) return;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    });
+    resizeObserver.observe(container);
+
+    // 12. Cleanup
+    return () => {
+      cancelAnimationFrame(animId);
+      resizeObserver.disconnect();
+      canvas.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('mousemove', onPointerMove);
+      window.removeEventListener('mouseup', onPointerUp);
+      canvas.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onPointerUp);
+      canvas.removeEventListener('wheel', onWheel);
+
+      renderer.dispose();
+      scene.clear();
+    };
+  }, []);
+
   return (
-    <div className="w-full relative overflow-hidden rounded-2xl bg-zinc-950 border border-zinc-800 shadow-xl select-none">
+    <div className="w-full relative overflow-hidden rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl select-none">
       
-      {/* Dynamic Inline Keyframes */}
-      <style>{`
-        @keyframes roadDash {
-          0% { stroke-dashoffset: 0; }
-          100% { stroke-dashoffset: -120; }
-        }
-        @keyframes roadLines {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100%); }
-        }
-        @keyframes speedLine {
-          0% { transform: translateX(120%) scaleX(0.5); opacity: 0; }
-          40% { opacity: 0.8; }
-          100% { transform: translateX(-120%) scaleX(1.5); opacity: 0; }
-        }
-        @keyframes truckCamShift {
-          0% {
-            transform: perspective(700px) rotateY(-28deg) rotateX(6deg) scale(0.92) translate3d(-35px, 8px, -40px);
-          }
-          28% {
-            transform: perspective(700px) rotateY(-18deg) rotateX(4deg) scale(1.02) translate3d(-10px, 4px, 0px);
-          }
-          55% {
-            transform: perspective(700px) rotateY(15deg) rotateX(2deg) scale(1.06) translate3d(20px, 0px, 20px);
-          }
-          78% {
-            transform: perspective(700px) rotateY(42deg) rotateX(0deg) scale(1.03) translate3d(70px, -4px, 30px);
-          }
-          100% {
-            transform: perspective(700px) rotateY(55deg) rotateX(-2deg) scale(0.96) translate3d(140px, -8px, -10px);
-          }
-        }
-        @keyframes truckBounce {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-2.5px); }
-        }
-        @keyframes wheelSpin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        @keyframes headlightGlow {
-          0%, 100% { opacity: 0.65; transform: scaleY(1); }
-          50% { opacity: 0.95; transform: scaleY(1.08); }
-        }
-        @keyframes destinationPulse {
-          0% { transform: scale(0.9); opacity: 0.5; }
-          50% { transform: scale(1.3); opacity: 1; }
-          100% { transform: scale(0.9); opacity: 0.5; }
-        }
-        @keyframes beaconRing {
-          0% { transform: scale(0.6); opacity: 0.9; }
-          100% { transform: scale(2.4); opacity: 0; }
-        }
-        @keyframes exhaustPuff {
-          0% { transform: translate(0, 0) scale(0.5); opacity: 0.6; }
-          100% { transform: translate(-30px, -15px) scale(1.8); opacity: 0; }
-        }
-      `}</style>
+      {/* 3D WebGL Canvas Container */}
+      <div 
+        ref={containerRef} 
+        className="w-full h-64 sm:h-72 relative cursor-grab active:cursor-grabbing touch-none"
+      >
+        <canvas ref={canvasRef} className="w-full h-full block" />
 
-      {/* Top Overlay Badge Bar */}
-      <div className="absolute top-2.5 left-3 right-3 z-20 flex items-center justify-between text-[11px] pointer-events-none">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-900/80 backdrop-blur-md border border-zinc-700/60 text-zinc-200 shadow-xs">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
-          <span className="font-semibold tracking-wide">
-            {fromCity && toCity ? `${fromCity} ➔ ${toCity}` : 'DISPATCH IN TRANSIT'}
-          </span>
-        </div>
-
-        {vehicleNo && (
-          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-zinc-900/70 backdrop-blur-md border border-zinc-800 text-[10px] font-mono font-bold text-zinc-300">
-            <Navigation className="w-2.5 h-2.5 text-emerald-400" />
-            <span>{vehicleNo}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Main Cinematic Viewport Canvas */}
-      <div className="h-40 sm:h-48 w-full relative flex items-center justify-center overflow-hidden bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950">
-        
-        {/* Sky, Distant Stars and Mountains Silhouette */}
-        <div className="absolute inset-x-0 top-0 h-1/2 overflow-hidden pointer-events-none opacity-40">
-          <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1000 120">
-            {/* Distant Mountains */}
-            <path d="M0,120 L0,75 L80,50 L160,85 L280,35 L400,90 L520,45 L650,85 L780,40 L900,75 L1000,55 L1000,120 Z" fill="#18181b" />
-            <path d="M0,120 L0,88 L120,68 L240,95 L360,60 L480,95 L620,65 L760,95 L880,70 L1000,85 L1000,120 Z" fill="#27272a" opacity="0.6" />
-            {/* Stars */}
-            <circle cx="90" cy="25" r="1" fill="#ffffff" />
-            <circle cx="210" cy="18" r="1.2" fill="#ffffff" />
-            <circle cx="340" cy="28" r="1" fill="#ffffff" />
-            <circle cx="580" cy="15" r="1.4" fill="#ffffff" />
-            <circle cx="720" cy="22" r="1" fill="#ffffff" />
-            <circle cx="890" cy="18" r="1.2" fill="#ffffff" />
-          </svg>
-        </div>
-
-        {/* Destination Waypoint Beacon in the Horizon */}
-        <div className="absolute top-[28%] right-[22%] sm:right-[26%] z-10 flex flex-col items-center pointer-events-none">
-          <div className="relative">
-            <span className="absolute -inset-2 rounded-full bg-emerald-500/30" style={{ animation: 'beaconRing 2s cubic-bezier(0,0,0.2,1) infinite' }} />
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 block shadow-[0_0_12px_#34d399]" style={{ animation: 'destinationPulse 2s ease-in-out infinite' }} />
-          </div>
-          <div className="flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded-md bg-emerald-950/80 border border-emerald-500/40 text-[9px] font-bold text-emerald-300">
-            <MapPin className="w-2.5 h-2.5" />
+        {/* Cinematic Route Badge Overlay (Top Left) */}
+        {(fromCity || toCity) && (
+          <div className="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-xl bg-zinc-900/85 backdrop-blur-md border border-zinc-800/80 shadow-lg flex items-center gap-2 text-xs font-bold text-white pointer-events-none">
+            <span className="p-1 rounded-lg bg-emerald-500/20 text-emerald-400">
+              <Navigation className="w-3.5 h-3.5" />
+            </span>
+            <span>{fromCity || 'Origin'}</span>
+            <span className="text-emerald-400 font-bold">➔</span>
             <span>{toCity || 'Destination'}</span>
           </div>
-        </div>
+        )}
 
-        {/* 3D Highway Road Surface */}
-        <div 
-          className="absolute inset-x-0 bottom-0 h-28 sm:h-32 pointer-events-none"
-          style={{ perspective: '450px' }}
-        >
-          <div 
-            className="w-full h-full bg-zinc-900 border-t-2 border-emerald-500/30 shadow-2xl relative"
-            style={{ 
-              transform: 'rotateX(55deg)', 
-              transformOrigin: 'bottom center',
-              background: 'linear-gradient(to bottom, #111113 0%, #18181b 40%, #09090b 100%)'
-            }}
-          >
-            {/* Left & Right Shoulder Rumble Lines */}
-            <div className="absolute top-0 bottom-0 left-[12%] w-1 bg-amber-500/40" />
-            <div className="absolute top-0 bottom-0 right-[12%] w-1 bg-zinc-500/40" />
-
-            {/* Road Center Divider Dashes (Rushing Backwards) */}
-            <svg className="w-full h-full absolute inset-0">
-              <line 
-                x1="50%" y1="0" 
-                x2="50%" y2="100%" 
-                stroke="#facc15" 
-                strokeWidth="4" 
-                strokeDasharray="20 20" 
-                style={{ animation: 'roadDash 0.35s linear infinite' }} 
-              />
-            </svg>
+        {/* Vehicle & LR Badge (Top Right) */}
+        {(vehicleNo || lrNo) && (
+          <div className="absolute top-3 right-3 z-10 px-3 py-1.5 rounded-xl bg-zinc-900/85 backdrop-blur-md border border-zinc-800/80 shadow-lg flex items-center gap-2 text-xs font-mono font-bold text-zinc-200 pointer-events-none">
+            {vehicleNo && <span className="text-white">{vehicleNo}</span>}
+            {lrNo && (
+              <span className="px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800/50 text-[10px]">
+                {lrNo}
+              </span>
+            )}
           </div>
-        </div>
+        )}
 
-        {/* Speed Wind Streaks */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
-          <div className="absolute top-[35%] left-0 w-32 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent" style={{ animation: 'speedLine 0.7s linear infinite 0.1s' }} />
-          <div className="absolute top-[52%] left-0 w-48 h-[1px] bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent" style={{ animation: 'speedLine 0.6s linear infinite 0.3s' }} />
-          <div className="absolute top-[68%] left-0 w-40 h-[1.5px] bg-gradient-to-r from-transparent via-white/60 to-transparent" style={{ animation: 'speedLine 0.5s linear infinite 0.2s' }} />
-          <div className="absolute top-[78%] left-0 w-24 h-[1px] bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" style={{ animation: 'speedLine 0.65s linear infinite 0.45s' }} />
-        </div>
-
-        {/* 3D Dramatic Camera Angle Swiveling Truck Container */}
-        <div 
-          className="relative z-15 flex items-center justify-center"
-          style={{ 
-            animation: 'truckCamShift 4.2s cubic-bezier(0.25, 1, 0.5, 1) infinite alternate',
-            transformStyle: 'preserve-3d'
-          }}
-        >
-          {/* Subtle Suspension Bounce Container */}
-          <div style={{ animation: 'truckBounce 0.4s ease-in-out infinite' }}>
-            
-            {/* The Cinematic Freight Truck Vector Illustration */}
-            <svg 
-              className="w-72 sm:w-88 h-28 sm:h-34 drop-shadow-[0_12px_20px_rgba(0,0,0,0.8)]" 
-              viewBox="0 0 340 130" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <defs>
-                {/* Headlight Cones */}
-                <linearGradient id="headlightBeam" x1="1" y1="0.5" x2="0" y2="0.5">
-                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8" />
-                  <stop offset="30%" stopColor="#38bdf8" stopOpacity="0.35" />
-                  <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
-                </linearGradient>
-
-                {/* Cabin Metallic Gradient */}
-                <linearGradient id="cabinBody" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#fafafa" />
-                  <stop offset="50%" stopColor="#e4e4e7" />
-                  <stop offset="100%" stopColor="#71717a" />
-                </linearGradient>
-
-                {/* Trailer Gradient */}
-                <linearGradient id="trailerBody" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#27272a" />
-                  <stop offset="60%" stopColor="#18181b" />
-                  <stop offset="100%" stopColor="#09090b" />
-                </linearGradient>
-
-                {/* Windshield Glass Reflection */}
-                <linearGradient id="glassReflection" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.7" />
-                  <stop offset="40%" stopColor="#0284c7" stopOpacity="0.9" />
-                  <stop offset="100%" stopColor="#0c4a6e" stopOpacity="0.95" />
-                </linearGradient>
-
-                {/* Wheel Chrome Rim */}
-                <linearGradient id="rimChrome" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#ffffff" />
-                  <stop offset="50%" stopColor="#71717a" />
-                  <stop offset="100%" stopColor="#27272a" />
-                </linearGradient>
-              </defs>
-
-              {/* Headlight Glowing Light Beams illuminating road forward */}
-              <polygon 
-                points="295,78 340,65 340,96 295,84" 
-                fill="url(#headlightBeam)" 
-                style={{ animation: 'headlightGlow 1.2s ease-in-out infinite' }} 
-              />
-              <polygon 
-                points="292,82 340,75 340,105 292,86" 
-                fill="url(#headlightBeam)" 
-                opacity="0.8" 
-              />
-
-              {/* Exhaust Smoke Plumes */}
-              <circle cx="230" cy="38" r="4" fill="#a1a1aa" style={{ animation: 'exhaustPuff 1s linear infinite 0.1s' }} />
-              <circle cx="230" cy="36" r="3" fill="#d4d4d8" style={{ animation: 'exhaustPuff 1s linear infinite 0.4s' }} />
-
-              {/* --- 1. CARGO TRAILER CONTAINER --- */}
-              {/* Main Container Box */}
-              <rect x="25" y="24" width="205" height="66" rx="4" fill="url(#trailerBody)" stroke="#3f3f46" strokeWidth="1.5" />
-              
-              {/* Trailer Aerodynamic Corrugated Wall Ribs */}
-              <line x1="55" y1="26" x2="55" y2="88" stroke="#27272a" strokeWidth="2" />
-              <line x1="85" y1="26" x2="85" y2="88" stroke="#27272a" strokeWidth="2" />
-              <line x1="115" y1="26" x2="115" y2="88" stroke="#27272a" strokeWidth="2" />
-              <line x1="145" y1="26" x2="145" y2="88" stroke="#27272a" strokeWidth="2" />
-              <line x1="175" y1="26" x2="175" y2="88" stroke="#27272a" strokeWidth="2" />
-              <line x1="205" y1="26" x2="205" y2="88" stroke="#27272a" strokeWidth="2" />
-
-              {/* High-Tech Branding on Trailer */}
-              <rect x="42" y="44" width="145" height="24" rx="4" fill="#09090b" stroke="#27272a" strokeWidth="1" />
-              <text x="50" y="60" fill="#ffffff" fontSize="11" fontWeight="800" fontFamily="sans-serif" letterSpacing="2">
-                TRANSPORTX
-              </text>
-              <text x="145" y="60" fill="#10b981" fontSize="9" fontWeight="700" fontFamily="sans-serif">
-                FLEET
-              </text>
-
-              {/* Trailer Reflective Hazard Stripe at Bottom */}
-              <rect x="25" y="85" width="205" height="4" fill="#eab308" />
-              <line x1="35" y1="85" x2="40" y2="89" stroke="#000000" strokeWidth="2" />
-              <line x1="60" y1="85" x2="65" y2="89" stroke="#000000" strokeWidth="2" />
-              <line x1="85" y1="85" x2="90" y2="89" stroke="#000000" strokeWidth="2" />
-              <line x1="110" y1="85" x2="115" y2="89" stroke="#000000" strokeWidth="2" />
-              <line x1="135" y1="85" x2="140" y2="89" stroke="#000000" strokeWidth="2" />
-              <line x1="160" y1="85" x2="165" y2="89" stroke="#000000" strokeWidth="2" />
-              <line x1="185" y1="85" x2="190" y2="89" stroke="#000000" strokeWidth="2" />
-              <line x1="210" y1="85" x2="215" y2="89" stroke="#000000" strokeWidth="2" />
-
-              {/* Rear Trailer Mudguard and Underride Guard */}
-              <rect x="18" y="78" width="10" height="18" fill="#18181b" rx="2" />
-              <rect x="15" y="86" width="6" height="4" fill="#ef4444" /> {/* Tail brake light */}
-
-              {/* Kingpin / Hitch connection */}
-              <rect x="225" y="65" width="12" height="22" fill="#52525b" rx="2" />
-
-              {/* --- 2. CABIN PRIME MOVER TRUCK --- */}
-              {/* Vertical Exhaust Stack behind cabin */}
-              <rect x="232" y="20" width="4" height="45" fill="#71717a" rx="1.5" />
-              <path d="M232,20 Q230,14 227,15" stroke="#71717a" strokeWidth="3" fill="none" />
-
-              {/* Cabin Roof Fairing Deflector */}
-              <path d="M236,44 L258,26 L278,26 L286,44 Z" fill="url(#cabinBody)" stroke="#71717a" strokeWidth="1" />
-
-              {/* Main Cabin Shell */}
-              <path d="M236,44 L288,44 L298,62 L298,92 L236,92 Z" fill="url(#cabinBody)" stroke="#52525b" strokeWidth="1.2" />
-
-              {/* Aerodynamic Windshield */}
-              <path d="M258,34 L276,34 L288,52 L260,52 Z" fill="url(#glassReflection)" stroke="#0284c7" strokeWidth="1" />
-              {/* Windshield Glare Reflection Line */}
-              <line x1="265" y1="36" x2="280" y2="50" stroke="#ffffff" strokeWidth="1.5" opacity="0.6" />
-
-              {/* Cabin Side Door Window */}
-              <path d="M242,48 L256,48 L256,62 L242,62 Z" fill="#18181b" stroke="#3f3f46" strokeWidth="1" />
-              {/* Door Handle */}
-              <rect x="244" y="66" width="6" height="2" fill="#71717a" rx="1" />
-
-              {/* Aerodynamic Front Nose Hood & Bumper */}
-              <path d="M288,58 L299,62 L300,82 L288,82 Z" fill="#d4d4d8" />
-              {/* Front Chrome Bumper */}
-              <rect x="288" y="82" width="14" height="12" rx="3" fill="#71717a" stroke="#a1a1aa" strokeWidth="1" />
-              {/* Front Chrome Grille */}
-              <line x1="294" y1="84" x2="294" y2="92" stroke="#18181b" strokeWidth="1.5" />
-              <line x1="297" y1="84" x2="297" y2="92" stroke="#18181b" strokeWidth="1.5" />
-              <line x1="300" y1="84" x2="300" y2="92" stroke="#18181b" strokeWidth="1.5" />
-
-              {/* LED Headlamp Lens */}
-              <polygon points="296,75 301,77 301,83 296,82" fill="#38bdf8" />
-              <circle cx="298" cy="79" r="2.5" fill="#ffffff" />
-
-              {/* Chrome Side Mirror */}
-              <rect x="286" y="48" width="3" height="8" rx="1" fill="#71717a" />
-              <line x1="284" y1="52" x2="286" y2="52" stroke="#a1a1aa" strokeWidth="1.5" />
-
-              {/* Chassis Underbody */}
-              <rect x="20" y="88" width="275" height="6" fill="#18181b" />
-
-              {/* --- 3. WHEELS & ALLOY RIMS --- */}
-              {/* Wheel 1: Trailer Rear Axle 1 */}
-              <g transform="translate(52, 94)">
-                <circle cx="0" cy="0" r="16" fill="#09090b" stroke="#27272a" strokeWidth="2" />
-                <circle cx="0" cy="0" r="10" fill="url(#rimChrome)" />
-                <circle cx="0" cy="0" r="4" fill="#09090b" />
-                {/* Rotating Spokes */}
-                <g style={{ transformOrigin: '0px 0px', animation: 'wheelSpin 0.3s linear infinite' }}>
-                  <line x1="-8" y1="0" x2="8" y2="0" stroke="#d4d4d8" strokeWidth="1.5" />
-                  <line x1="0" y1="-8" x2="0" y2="8" stroke="#d4d4d8" strokeWidth="1.5" />
-                </g>
-              </g>
-
-              {/* Wheel 2: Trailer Rear Axle 2 */}
-              <g transform="translate(86, 94)">
-                <circle cx="0" cy="0" r="16" fill="#09090b" stroke="#27272a" strokeWidth="2" />
-                <circle cx="0" cy="0" r="10" fill="url(#rimChrome)" />
-                <circle cx="0" cy="0" r="4" fill="#09090b" />
-                <g style={{ transformOrigin: '0px 0px', animation: 'wheelSpin 0.3s linear infinite' }}>
-                  <line x1="-8" y1="0" x2="8" y2="0" stroke="#d4d4d8" strokeWidth="1.5" />
-                  <line x1="0" y1="-8" x2="0" y2="8" stroke="#d4d4d8" strokeWidth="1.5" />
-                </g>
-              </g>
-
-              {/* Wheel 3: Drive Axle Tandem */}
-              <g transform="translate(216, 94)">
-                <circle cx="0" cy="0" r="16" fill="#09090b" stroke="#27272a" strokeWidth="2" />
-                <circle cx="0" cy="0" r="10" fill="url(#rimChrome)" />
-                <circle cx="0" cy="0" r="4" fill="#09090b" />
-                <g style={{ transformOrigin: '0px 0px', animation: 'wheelSpin 0.3s linear infinite' }}>
-                  <line x1="-8" y1="0" x2="8" y2="0" stroke="#d4d4d8" strokeWidth="1.5" />
-                  <line x1="0" y1="-8" x2="0" y2="8" stroke="#d4d4d8" strokeWidth="1.5" />
-                </g>
-              </g>
-
-              {/* Wheel 4: Front Steer Axle */}
-              <g transform="translate(272, 94)">
-                <circle cx="0" cy="0" r="16" fill="#09090b" stroke="#27272a" strokeWidth="2" />
-                <circle cx="0" cy="0" r="10" fill="url(#rimChrome)" />
-                <circle cx="0" cy="0" r="4" fill="#09090b" />
-                <g style={{ transformOrigin: '0px 0px', animation: 'wheelSpin 0.3s linear infinite' }}>
-                  <line x1="-8" y1="0" x2="8" y2="0" stroke="#d4d4d8" strokeWidth="1.5" />
-                  <line x1="0" y1="-8" x2="0" y2="8" stroke="#d4d4d8" strokeWidth="1.5" />
-                </g>
-              </g>
-
-              {/* Front Wheel Mudguard Arch */}
-              <path d="M254,92 A18,18 0 0,1 290,92" stroke="#71717a" strokeWidth="2.5" fill="none" />
-              {/* Rear Trailer Mudguard Arch */}
-              <path d="M34,92 A18,18 0 0,1 104,92" stroke="#52525b" strokeWidth="2.5" fill="none" />
-
-            </svg>
-          </div>
-        </div>
-
-        {/* Dynamic Road Shadow beneath the Truck */}
-        <div className="absolute bottom-5 sm:bottom-6 z-14 w-60 sm:w-72 h-3 bg-black/80 rounded-full blur-md" />
-      </div>
-
-      {/* Bottom Status Banner */}
-      <div className="py-2 px-4 bg-zinc-900 border-t border-zinc-800 flex items-center justify-between text-[11px] text-zinc-400">
-        <div className="flex items-center gap-1.5 font-mono text-zinc-300">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          <span>LR #{lrNo || 'ENTRY'}</span>
-        </div>
-        <div className="text-emerald-400 font-semibold tracking-wide flex items-center gap-1">
-          <span>DESTINATION EN ROUTE</span>
-          <span className="animate-pulse">➔</span>
+        {/* Interactive 3D Orbit Helper Pill (Bottom Center) */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 px-3 py-1 rounded-full bg-zinc-900/90 backdrop-blur-md border border-zinc-800 text-[11px] font-medium text-zinc-300 shadow-lg flex items-center gap-1.5 pointer-events-none transition-opacity duration-200">
+          <Compass className={`w-3.5 h-3.5 ${isInteractingState ? 'text-emerald-400 animate-spin' : 'text-zinc-400'}`} />
+          <span>
+            {isInteractingState 
+              ? 'Orbiting in 3D... release to return to side profile' 
+              : '⇄ Drag or pinch to rotate 3D truck • Releases to sideview'}
+          </span>
         </div>
       </div>
-
     </div>
   );
 }
