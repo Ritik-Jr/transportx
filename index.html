@@ -27,19 +27,35 @@
   <body class="bg-zinc-50 text-zinc-900 min-h-screen selection:bg-zinc-900 selection:text-white">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <!-- Production fallback when served directly by GitHub Pages (main / root) -->
-    <script>
+    <!-- Production bundle loader for GitHub Pages (main / root hosting) -->
+    <script id="prod-root-loader">
       (function() {
-        if (!window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+        var isLocal = window.location.hostname === 'localhost' || 
+                      window.location.hostname === '127.0.0.1' || 
+                      window.location.hostname === '0.0.0.0';
+        if (!isLocal) {
           var link = document.createElement('link');
           link.rel = 'stylesheet';
-          link.href = '/transportx/assets/index-BdwQfplz.css';
+          link.href = '/transportx/assets/index-B1HE6EHu.css';
+          link.onerror = function() {
+            var fb = document.createElement('link');
+            fb.rel = 'stylesheet';
+            fb.href = '/transportx/assets/main.css';
+            document.head.appendChild(fb);
+          };
           document.head.appendChild(link);
 
           var s = document.createElement('script');
           s.type = 'module';
           s.crossOrigin = 'anonymous';
-          s.src = '/transportx/assets/index-B0nUDBef.js';
+          s.src = '/transportx/assets/index-4-ew3Rsx.js';
+          s.onerror = function() {
+            var fb = document.createElement('script');
+            fb.type = 'module';
+            fb.crossOrigin = 'anonymous';
+            fb.src = '/transportx/assets/main.js';
+            document.body.appendChild(fb);
+          };
           document.body.appendChild(s);
         }
       })();
