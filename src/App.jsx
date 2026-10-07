@@ -33,7 +33,7 @@ const getTabFromPath = () => {
       return last;
     }
     if (last === 'database') return 'settings';
-    if (segments.length === 0 || last === 'dashboard') {
+    if (segments.length === 0 || last === 'dashboard' || last === 'transportx') {
       return 'dashboard';
     }
   } catch {}

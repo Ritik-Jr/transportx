@@ -33,21 +33,20 @@ Log and manage all essential transport and logistics information:
 
 ### 3. 📄 Printable Lorry Receipt (Bilty Voucher)
 - Professional standard Indian Goods Consignment Note / LR formatted for A4 printing.
-- Includes Sai Transport branding, Consignor particulars, Truck & Driver details, cargo table, freight breakdown, and authorized signature stamps.
+- Includes TransportX company branding, Consignor particulars, Truck & Driver details, cargo table, freight breakdown, and authorized signature stamps.
 - One-click browser print (`Ctrl+P` or Print button) with clean black-and-white print stylesheets.
 
-### 4. 🔒 Built-in Password Protection
+### 4. 🔒 Built-in Passcode Protection
 - Access-gate modal blocks unauthorized users before any data is revealed.
-- **Default Master Password**: `sai123`
-- Configurable in the **Settings** tab (change master password, set custom hint).
+- **Default Master Passcode**: `116600`
+- Configurable in the **Settings** tab (change passcode, update company details).
 - Session memory option ("Remember this device") for convenience.
-- Emergency hint support so you never get locked out.
 
 ### 5. 💾 Zero-Data-Loss Architecture (GitHub Pages Ready)
-GitHub Pages is a static CDN host without a traditional backend database. Sai Transport solves this with a **zero-data-loss storage system**:
+GitHub Pages is a static CDN host without a traditional backend database. TransportX solves this with a **zero-data-loss storage system**:
 - **IndexedDB Database (Dexie.js Engine)**: Stores structured records locally inside your browser, surviving page refreshes, browser closures, and system reboots.
 - **Dual-Storage Mirror**: Real-time mirror in `localStorage` for high availability.
-- **1-Click JSON Backup**: Download a timestamped snapshot of the entire database (`sai-transport-backup-[date].json`).
+- **1-Click JSON Backup**: Download a timestamped snapshot of the entire database (`transportx-backup-[date].json`).
 - **1-Click SQLite Database Export**: Generates a standard `.sql` script with `CREATE TABLE` and `INSERT INTO` statements compatible with SQLite 3, DB Browser for SQLite, DBeaver, etc.
 - **1-Click Excel / CSV Export**: Instant spreadsheet download for Microsoft Excel, Google Sheets, or Tally.
 - **1-Click Database Restore**: Upload any backup file to restore 100% of your records immediately.
@@ -59,13 +58,13 @@ GitHub Pages is a static CDN host without a traditional backend database. Sai Tr
 
 ```bash
 # 1. Navigate to the project directory
-cd "z:\Event Tools\sai-transport"
+cd "z:\Event Tools\transportx"
 
 # 2. Start the local Vite development server
 npm run dev
 ```
 
-Open your browser at the URL shown in your terminal (usually `http://localhost:5173`).
+Open your browser at the URL shown in your terminal (usually `http://localhost:5173` or `5174`).
 
 ---
 
@@ -73,37 +72,32 @@ Open your browser at the URL shown in your terminal (usually `http://localhost:5
 
 ### Option A: Automatic Deployment via GitHub Actions (Recommended)
 
-1. Create a new repository on GitHub (e.g. named `sai-transport`).
-2. Push this folder to your GitHub repository:
+1. Repository: [`https://github.com/Ritik-Jr/transportx`](https://github.com/Ritik-Jr/transportx).
+2. Push your latest code:
    ```bash
-   git init
    git add .
-   git commit -m "Initial commit for Sai Transport portal"
-   git branch -M main
-   git remote add origin https://github.com/<your-username>/sai-transport.git
-   git push -u origin main
+   git commit -m "Update TransportX"
+   git push origin main
    ```
 3. In your GitHub repository:
    - Go to **Settings** > **Pages**.
-   - Under **Build and deployment** > **Source**, choose **GitHub Actions**.
-4. The included `.github/workflows/deploy.yml` workflow will automatically build and publish your site!
-5. Your website will be live at `https://<your-username>.github.io/sai-transport/`!
+   - Under **Build and deployment** > **Source**, choose **GitHub Actions** (or choose **Deploy from a branch** and select branch **`gh-pages`**).
+4. Your website will be live at `https://ritik-jr.github.io/transportx/`!
 
 ### Option B: 1-Command Deployment via `gh-pages`
 
-1. In `package.json`, ensure your homepage repository is set if needed.
-2. Run:
-   ```bash
-   npm run deploy
-   ```
-3. This runs `npm run build` and automatically pushes the production `dist` directory to the `gh-pages` branch on GitHub!
+Run:
+```bash
+npm run deploy
+```
+This runs `npm run build` and automatically pushes the production `dist` directory to the `gh-pages` branch on GitHub!
 
 ---
 
 ## 🔐 Credentials & Default Settings
 
 - **Default 6-Digit Passcode**: `116600`
-- **Default Company Name**: `SAI TRANSPORT`
+- **Default Company Name**: `TransportX` (Configurable in Settings)
 - **To Change Passcode**: Go to **Settings** > **Change 6-Digit Passcode**, enter current passcode `116600`, and set your new 6-digit code.
 
 ---
