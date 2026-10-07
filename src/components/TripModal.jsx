@@ -64,6 +64,23 @@ export default function TripModal({
   const prevIsOpenRef = useRef(false);
   const prevEditingIdRef = useRef(null);
 
+  const [isSubmitReady, setIsSubmitReady] = useState(false);
+  const stepChangedTimeRef = useRef(0);
+
+  // Prevent accidental fast-click bleed-through from Step 3 Next button to Step 4 Save button
+  useEffect(() => {
+    stepChangedTimeRef.current = Date.now();
+    if (currentStep === 4) {
+      setIsSubmitReady(false);
+      const timer = setTimeout(() => {
+        setIsSubmitReady(true);
+      }, 450);
+      return () => clearTimeout(timer);
+    } else {
+      setIsSubmitReady(false);
+    }
+  }, [currentStep]);
+
   const [formData, setFormData] = useState({
     lrNo: '',
     partyName: '',
@@ -279,6 +296,13 @@ export default function TripModal({
   };
 
   const handleNextStep = () => {
+    // Debounce rapid next clicks
+    const now = Date.now();
+    if (now - stepChangedTimeRef.current < 200) {
+      return;
+    }
+    stepChangedTimeRef.current = now;
+
     const newErrors = {};
 
     if (currentStep === 1) {
@@ -329,6 +353,17 @@ export default function TripModal({
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSaving) return;
+
+    // Guard: Submissions must only ever occur on Step 4 (Freight)
+    if (currentStep < 4) {
+      handleNextStep();
+      return;
+    }
+
+    // Guard: Ignore fast-click / double-click bleed-through from Step 3 Next button
+    if (!isSubmitReady || (Date.now() - stepChangedTimeRef.current < 400)) {
+      return;
+    }
 
     const newErrors = {};
 
@@ -1057,6 +1092,7 @@ export default function TripModal({
                 <div>
                   {currentStep < 4 ? (
                     <button
+                      key={`next-step-btn-${currentStep}`}
                       type="button"
                       onClick={handleNextStep}
                       className="px-7 py-2.5 sm:py-3 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 cursor-pointer active:scale-95 transition"
@@ -1066,10 +1102,11 @@ export default function TripModal({
                     </button>
                   ) : (
                     <button
+                      key="submit-entry-final-btn"
                       type="submit"
-                      disabled={isSaving}
+                      disabled={isSaving || !isSubmitReady}
                       className={`px-7 py-2.5 sm:py-3 ${
-                        isSaving ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer active:scale-95'
+                        isSaving || !isSubmitReady ? 'opacity-80 cursor-wait' : 'cursor-pointer active:scale-95'
                       } bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition`}
                     >
                       {isSaving ? (
