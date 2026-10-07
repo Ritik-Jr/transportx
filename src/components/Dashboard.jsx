@@ -6,14 +6,10 @@ import {
   Truck, 
   ArrowUpRight, 
   Users, 
-  FileSpreadsheet, 
-  Download, 
   ChevronRight,
-  Plus,
   Clock,
   Phone
 } from 'lucide-react';
-import { exportTripsToCsv, exportDatabaseToJson } from '../db';
 import CasinoCounter from './CasinoCounter';
 import Pagination from './Pagination';
 import PeriodDropdown, { PERIOD_OPTIONS } from './PeriodDropdown';
@@ -606,34 +602,6 @@ export default function Dashboard({
                 />
               </>
             )}
-          </div>
-
-          {/* Quick Buttons */}
-          <div className="mt-4 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={exportTripsToCsv}
-                className="px-3.5 py-2 sm:px-3 sm:py-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer active:scale-95"
-              >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span>Export to Excel</span>
-              </button>
-              <button
-                onClick={exportDatabaseToJson}
-                className="px-3.5 py-2 sm:px-3 sm:py-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer active:scale-95"
-              >
-                <Download className="w-4 h-4" />
-                <span>Save Backup</span>
-              </button>
-            </div>
-
-            <button
-              onClick={onNewTrip}
-              className="px-4 py-2 sm:px-3.5 sm:py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
-            >
-              <Plus className="w-4 h-4" />
-              <span>New Trip</span>
-            </button>
           </div>
 
         </div>

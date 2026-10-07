@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   Search, 
   Plus, 
@@ -15,11 +15,25 @@ import {
   ArrowUpDown,
   LayoutGrid,
   List,
-  Phone
+  Phone,
+  ChevronDown
 } from 'lucide-react';
 import { exportTripsToCsv } from '../db';
 import Pagination from './Pagination';
 import { formatTripWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
+
+const STATUS_OPTIONS = [
+  { id: 'ALL', label: 'All Status', shortLabel: 'All', icon: ArrowUpDown, color: 'text-zinc-400' },
+  { id: 'PENDING', label: 'Pending', shortLabel: 'Pending', icon: AlertCircle, color: 'text-rose-500' },
+  { id: 'PARTIAL', label: 'Partial', shortLabel: 'Partial', icon: Clock, color: 'text-amber-500' },
+  { id: 'PAID', label: 'Paid', shortLabel: 'Paid', icon: CheckCircle2, color: 'text-emerald-500' },
+  { id: 'IN_TRANSIT', label: 'In Transit', shortLabel: 'Transit', icon: Truck, color: 'text-sky-500' }
+];
+
+const FORMAT_OPTIONS = [
+  { id: 'table', label: 'Table Format', shortLabel: 'Table', icon: List },
+  { id: 'cards', label: 'Card Format', shortLabel: 'Cards', icon: LayoutGrid }
+];
 
 export default function TripList({ 
   trips = [], 
@@ -58,7 +72,9 @@ export default function TripList({
     return localStorage.getItem('sai_trips_sortOrder') || 'desc';
   });
   const [mobileViewMode, setMobileViewMode] = useState(() => {
-    return localStorage.getItem('sai_trips_viewMode') || 'cards';
+    const saved = localStorage.getItem('sai_trips_viewMode');
+    if (saved) return saved;
+    return typeof window !== 'undefined' && window.innerWidth < 768 ? 'cards' : 'table';
   });
   const [currentPage, setCurrentPage] = useState(() => {
     return Number(localStorage.getItem('sai_trips_page')) || 1;
@@ -66,6 +82,24 @@ export default function TripList({
   const [pageSize, setPageSize] = useState(() => {
     return Number(localStorage.getItem('sai_trips_pageSize')) || 10;
   });
+
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const [isFormatDropdownOpen, setIsFormatDropdownOpen] = useState(false);
+  const statusDropdownRef = useRef(null);
+  const formatDropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(e.target)) {
+        setIsStatusDropdownOpen(false);
+      }
+      if (formatDropdownRef.current && !formatDropdownRef.current.contains(e.target)) {
+        setIsFormatDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const isFirstRender = React.useRef(true);
   useEffect(() => {
@@ -103,6 +137,12 @@ export default function TripList({
   useEffect(() => {
     localStorage.setItem('sai_trips_pageSize', String(pageSize));
   }, [pageSize]);
+
+  const currentStatusOption = STATUS_OPTIONS.find(s => s.id === statusFilter) || STATUS_OPTIONS[0];
+  const CurrentStatusIcon = currentStatusOption.icon;
+
+  const currentFormatOption = FORMAT_OPTIONS.find(f => f.id === mobileViewMode) || FORMAT_OPTIONS[0];
+  const CurrentFormatIcon = currentFormatOption.icon;
 
   const filteredTrips = useMemo(() => {
     return trips.filter(trip => {
@@ -151,17 +191,6 @@ export default function TripList({
     });
   }, [trips, statusFilter, searchTerm, sortField, sortOrder]);
 
-  const totals = useMemo(() => {
-    let freight = 0;
-    let advance = 0;
-    let balance = 0;
-    filteredTrips.forEach(t => {
-      freight += Number(t.amount) || 0;
-      advance += Number(t.advance) || 0;
-      balance += Number(t.balance) || 0;
-    });
-    return { freight, advance, balance };
-  }, [filteredTrips]);
 
   const totalPages = Math.max(1, Math.ceil(filteredTrips.length / pageSize));
   const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
@@ -227,7 +256,7 @@ export default function TripList({
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="hidden sm:flex items-center gap-2 self-start sm:self-auto">
           <button
             onClick={exportTripsToCsv}
             className="px-3.5 py-2 sm:px-3.5 sm:py-2 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-zinc-200 dark:border-zinc-800 shadow-xs"
@@ -246,96 +275,123 @@ export default function TripList({
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3 sm:p-4 space-y-2.5 shadow-xs">
-        <div className="flex flex-col sm:flex-row gap-2">
+      {/* Filter and Search Bar - All in one clean line */}
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-2.5 sm:p-3 shadow-xs">
+        <div className="flex items-center gap-1.5 sm:gap-2 w-full">
           
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 sm:w-4 sm:h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+          {/* Search Input Box */}
+          <div className="relative flex-1 min-w-0">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by Vehicle No, Party, Driver, LR, City..."
-              className="w-full pl-10 pr-3 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-sm sm:text-xs placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
+              placeholder="Search by Vehicle, Party, Driver, LR..."
+              className="w-full pl-8 sm:pl-9 pr-6 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-xs placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
             />
             {searchTerm && (
               <button 
+                type="button"
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-zinc-400 hover:text-zinc-700 dark:hover:text-white p-1"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400 hover:text-zinc-700 dark:hover:text-white p-0.5 cursor-pointer"
+                title="Clear search"
               >
-                Clear
+                ×
               </button>
             )}
           </div>
 
-          {/* Filter Tabs */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-            {[
-              { id: 'ALL', label: 'All' },
-              { id: 'PENDING', label: 'Pending' },
-              { id: 'PARTIAL', label: 'Partial' },
-              { id: 'PAID', label: 'Paid' },
-              { id: 'IN_TRANSIT', label: 'In Transit' }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setStatusFilter(tab.id)}
-                className={`px-3 py-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer active:scale-95 ${
-                  statusFilter === tab.id
-                    ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs'
-                    : 'bg-zinc-100 dark:bg-zinc-950 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+          {/* Payment Status Dropdown with Icons */}
+          <div className="relative shrink-0" ref={statusDropdownRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setIsStatusDropdownOpen(prev => !prev);
+                setIsFormatDropdownOpen(false);
+              }}
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-semibold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+              title="Filter by payment status"
+            >
+              <CurrentStatusIcon className={`w-3.5 h-3.5 shrink-0 ${currentStatusOption.color}`} />
+              <span className="hidden sm:inline">{currentStatusOption.label}</span>
+              <span className="sm:hidden text-[11px]">{currentStatusOption.shortLabel}</span>
+              <ChevronDown className={`w-3 h-3 text-zinc-400 transition-transform duration-150 ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isStatusDropdownOpen && (
+              <div className="absolute right-0 top-full mt-1.5 w-36 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl z-30 py-1 text-xs">
+                {STATUS_OPTIONS.map((opt) => {
+                  const Icon = opt.icon;
+                  const isSelected = opt.id === statusFilter;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => {
+                        setStatusFilter(opt.id);
+                        setIsStatusDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-left font-medium transition cursor-pointer ${
+                        isSelected
+                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-bold'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60'
+                      }`}
+                    >
+                      <Icon className={`w-3.5 h-3.5 shrink-0 ${opt.color}`} />
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Table Format Dropdown with Icons */}
+          <div className="relative shrink-0" ref={formatDropdownRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setIsFormatDropdownOpen(prev => !prev);
+                setIsStatusDropdownOpen(false);
+              }}
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-semibold text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+              title="Change display format"
+            >
+              <CurrentFormatIcon className="w-3.5 h-3.5 shrink-0 text-zinc-600 dark:text-zinc-300" />
+              <span className="hidden sm:inline">{currentFormatOption.label}</span>
+              <span className="sm:hidden text-[11px]">{currentFormatOption.shortLabel}</span>
+              <ChevronDown className={`w-3 h-3 text-zinc-400 transition-transform duration-150 ${isFormatDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isFormatDropdownOpen && (
+              <div className="absolute right-0 top-full mt-1.5 w-36 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl z-30 py-1 text-xs">
+                {FORMAT_OPTIONS.map((opt) => {
+                  const Icon = opt.icon;
+                  const isSelected = opt.id === mobileViewMode;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => {
+                        setMobileViewMode(opt.id);
+                        setIsFormatDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-left font-medium transition cursor-pointer ${
+                        isSelected
+                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-bold'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60'
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5 shrink-0 text-zinc-600 dark:text-zinc-300" />
+                      <span>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
         </div>
-
-        {/* Live Filter Summary */}
-        <div className="flex flex-wrap items-center justify-between text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 pt-2 border-t border-zinc-100 dark:border-zinc-800 gap-2">
-          <div className="flex items-center gap-2">
-            <span>Showing <strong className="text-zinc-800 dark:text-zinc-200">{filteredTrips.length}</strong> of {trips.length}</span>
-
-            {/* Mobile View Toggle */}
-            <div className="md:hidden flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-800 p-0.5 rounded-lg border border-zinc-200 dark:border-zinc-700">
-              <button
-                type="button"
-                onClick={() => setMobileViewMode('cards')}
-                className={`px-2 py-0.5 rounded-md text-[10px] font-semibold flex items-center gap-1 transition cursor-pointer ${
-                  mobileViewMode === 'cards'
-                    ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs'
-                    : 'text-zinc-500 dark:text-zinc-400'
-                }`}
-              >
-                <LayoutGrid className="w-3 h-3" />
-                <span>Cards</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setMobileViewMode('table')}
-                className={`px-2 py-0.5 rounded-md text-[10px] font-semibold flex items-center gap-1 transition cursor-pointer ${
-                  mobileViewMode === 'table'
-                    ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs'
-                    : 'text-zinc-500 dark:text-zinc-400'
-                }`}
-              >
-                <List className="w-3 h-3" />
-                <span>Table</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <span>Freight: <strong className="text-zinc-900 dark:text-white">{formatCurrency(totals.freight)}</strong></span>
-            <span>Advance: <strong className="text-emerald-700 dark:text-emerald-400">{formatCurrency(totals.advance)}</strong></span>
-            <span>Due: <strong className="text-rose-700 dark:text-rose-400">{formatCurrency(totals.balance)}</strong></span>
-          </div>
-        </div>
-
       </div>
 
       {/* Trips Content */}
@@ -358,8 +414,8 @@ export default function TripList({
         </div>
       ) : (
         <>
-          {/* Table View: Always on Desktop; shown on mobile if Table toggle active */}
-          <div className={`${mobileViewMode === 'table' ? 'block' : 'hidden md:block'} bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs`}>
+          {/* Table View */}
+          <div className={`${mobileViewMode === 'table' ? 'block' : 'hidden'} bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs`}>
             {/* Mobile swipe helper */}
             <div className="md:hidden px-3.5 py-2 bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 text-[11px] text-zinc-500 dark:text-zinc-400 flex items-center justify-between font-medium">
               <span>⇄ Swipe horizontally to view all columns</span>
@@ -558,8 +614,8 @@ export default function TripList({
             </div>
           </div>
 
-          {/* Symmetrical Mobile Cards View (Spacious with un-squeezed action bar) */}
-          <div className={`${mobileViewMode === 'cards' ? 'block md:hidden' : 'hidden'} space-y-3.5`}>
+          {/* Cards View */}
+          <div className={`${mobileViewMode === 'cards' ? 'block' : 'hidden'} space-y-3.5 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:space-y-0 sm:gap-3.5`}>
             {paginatedTrips.map((trip) => (
               <div
                 key={trip.id || trip.lrNo}

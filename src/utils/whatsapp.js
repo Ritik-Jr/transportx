@@ -54,7 +54,7 @@ export function formatTripWhatsAppMessage(trip, company = {}) {
 
   const cargoDetails = [
     trip.material,
-    trip.weight ? `${trip.weight} MT` : null
+    trip.weight ? String(trip.weight).trim() : null
   ].filter(Boolean).join(' • ');
 
   const driverInfo = trip.driverName

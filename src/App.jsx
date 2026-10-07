@@ -185,7 +185,7 @@ export default function App() {
     setIsAuthenticated(false);
   };
 
-  // Generate Unique 4-character Random LR ID (Letters + Numbers, Non-repeating)
+  // Generate Unique 6-character Random LR ID (Letters + Numbers, Non-repeating)
   const getNextLrNo = () => {
     return generateUniqueLrId(trips);
   };

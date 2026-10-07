@@ -601,7 +601,7 @@ export default function TripModal({
                               if (errors.lrNo) setErrors(prev => ({ ...prev, lrNo: null }));
                             }}
                             className="text-[11px] text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-semibold flex items-center gap-1 transition cursor-pointer"
-                            title="Generate a new random 4-char unique LR ID"
+                            title="Generate a new random 6-char unique LR ID"
                           >
                             <RefreshCw className="w-3 h-3" />
                             <span>New ID</span>
@@ -610,14 +610,14 @@ export default function TripModal({
                       </div>
                       <input
                         type="text"
-                        maxLength={8}
+                        maxLength={10}
                         value={formData.lrNo}
                         onChange={(e) => {
                           const val = e.target.value.toUpperCase();
                           setFormData({ ...formData, lrNo: val });
                           if (errors.lrNo) setErrors(prev => ({ ...prev, lrNo: null }));
                         }}
-                        placeholder="e.g. 7B4K"
+                        placeholder="e.g. 7B4K9M"
                         className={`w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border ${
                           errors.lrNo ? 'border-rose-500 focus:ring-rose-500' : 'border-zinc-200 dark:border-zinc-800 focus:ring-zinc-900 dark:focus:ring-white'
                         } rounded-xl font-mono font-bold text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 box-border tracking-wider uppercase`}
