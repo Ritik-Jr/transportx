@@ -317,7 +317,7 @@ export default function SettingsModal({
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xs">
         <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm mb-0.5">Fleet Records Management</h3>
         <p className="text-[11px] text-zinc-400 mb-2.5">
-          Permanently delete sample dummy records for your real business operations, or reload demo data whenever needed.
+          Permanently delete sample dummy records while keeping your actual business entries 100% safe, or reload demo data whenever needed.
         </p>
 
         <div className="flex flex-wrap items-center gap-2.5">

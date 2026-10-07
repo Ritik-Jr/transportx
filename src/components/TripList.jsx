@@ -17,7 +17,7 @@ import {
   List,
   Phone
 } from 'lucide-react';
-import { exportTripsToCsv } from '../db';
+import { exportTripsToCsv, isDummyRecord } from '../db';
 import Pagination from './Pagination';
 import { formatTripWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
 
@@ -404,9 +404,16 @@ export default function TripList({
                     >
                       {/* LR & Date */}
                       <td className="py-3.5 px-4">
-                        <span className="font-mono font-bold text-zinc-900 dark:text-white block text-xs">
-                          {trip.lrNo || 'ST-NA'}
-                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-mono font-bold text-zinc-900 dark:text-white block text-xs">
+                            {trip.lrNo || 'ST-NA'}
+                          </span>
+                          {isDummyRecord(trip) && (
+                            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                              Dummy
+                            </span>
+                          )}
+                        </div>
                         <span className="text-[10px] text-zinc-400 block mt-0.5">
                           {trip.date}
                         </span>
@@ -571,6 +578,11 @@ export default function TripList({
                   <div className="flex items-center gap-2">
                     <span className="font-mono font-bold text-zinc-900 dark:text-white text-base">{trip.lrNo}</span>
                     <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">• {trip.date}</span>
+                    {isDummyRecord(trip) && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                        Dummy
+                      </span>
+                    )}
                   </div>
                   <div>
                     {getPaymentBadge(trip.paymentStatus)}

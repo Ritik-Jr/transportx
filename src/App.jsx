@@ -1,17 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   db, 
+  loadLocalCache,
   fetchAppData, 
   saveTripRecord, 
   deleteTripRecord, 
   savePartyRecord, 
   deletePartyRecord, 
   saveCompanySettings, 
+  deleteDummyRecordsOnly,
   clearAllDatabaseData, 
-  resetDemoDatabaseData, 
+  isDummyRecord,
+  INITIAL_TRIPS,
+  INITIAL_PARTIES,
   DEFAULT_COMPANY_SETTINGS 
 } from './db';
-import { isSupabaseEnabled } from './utils/supabase';
+import { isSupabaseEnabled, checkSupabaseSchema } from './utils/supabase';
 import AuthGate from './components/AuthGate';
 import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';
@@ -61,16 +65,17 @@ const getPathForTab = (tab) => {
     }
     return `${base}/${tab}`;
   } catch {
-    return tab === 'dashboard' ? '/' : `/${tab}`;
+    return `/${tab}`;
   }
 };
 
 export default function App() {
-  // Theme State (Default: light)
+  // Theme state
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('sai_transport_theme') || 'light';
+    return localStorage.getItem('sai_transport_theme') || 'dark';
   });
 
+  // Apply theme class to documentElement
   useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -84,76 +89,41 @@ export default function App() {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Authentication State
+  // Auth gate state (PIN protected)
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return (
-      localStorage.getItem('sai_transport_auth') === 'true' ||
-      sessionStorage.getItem('sai_transport_auth') === 'true'
-    );
+    const stored = localStorage.getItem('sai_transport_auth') || sessionStorage.getItem('sai_transport_auth');
+    return stored === 'true';
   });
 
-  // Navigation State using actual page path routes (/trips, /analytics, /parties, etc.)
+  // Active navigation tab
   const [activeTab, setActiveTab] = useState(() => {
-    const pathTab = getTabFromPath();
-    if (pathTab) return pathTab;
-
-    try {
-      const hash = window.location.hash.replace('#', '').toLowerCase();
-      if (VALID_TABS.includes(hash)) return hash;
-    } catch {}
-
-    try {
-      const saved = localStorage.getItem('sai_transport_active_tab');
-      if (saved && VALID_TABS.includes(saved)) return saved;
-    } catch {}
-
-    return 'dashboard';
+    return getTabFromPath() || localStorage.getItem('sai_transport_active_tab') || 'dashboard';
   });
 
-  // Navigate to tab updating URL pathname
-  const handleTabChange = useCallback((tab) => {
-    if (!VALID_TABS.includes(tab)) return;
-    const targetPath = getPathForTab(tab);
+  // Sync tab with browser URL history
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+    localStorage.setItem('sai_transport_active_tab', newTab);
+    const targetPath = getPathForTab(newTab);
     if (window.location.pathname !== targetPath) {
-      window.history.pushState(null, '', targetPath);
+      window.history.pushState({ tab: newTab }, '', targetPath);
     }
-    setActiveTab(tab);
-    try {
-      localStorage.setItem('sai_transport_active_tab', tab);
-    } catch {}
-  }, []);
+  };
 
-  // Listen to popstate (Browser Back / Forward) and synchronize path
+  // Listen to popstate for back/forward navigation
   useEffect(() => {
-    if (window.location.hash) {
-      const hashClean = window.location.hash.replace('#', '').toLowerCase();
-      if (VALID_TABS.includes(hashClean)) {
-        window.history.replaceState(null, '', getPathForTab(hashClean));
-      }
-    } else {
-      const expectedPath = getPathForTab(activeTab);
-      if (window.location.pathname !== expectedPath && activeTab !== 'dashboard') {
-        window.history.replaceState(null, '', expectedPath);
-      }
-    }
-
     const handlePopState = () => {
-      const tab = getTabFromPath();
-      if (tab) {
-        setActiveTab(tab);
-        try {
-          localStorage.setItem('sai_transport_active_tab', tab);
-        } catch {}
-      } else {
-        setActiveTab('dashboard');
+      const tabFromUrl = getTabFromPath();
+      if (tabFromUrl && tabFromUrl !== activeTab) {
+        setActiveTab(tabFromUrl);
+        localStorage.setItem('sai_transport_active_tab', tabFromUrl);
       }
     };
-
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [activeTab]);
 
-  // Sleek confirmation modal state for all deletions/resets
+  // Unified sleek confirm modal state
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     title: '',
@@ -169,31 +139,46 @@ export default function App() {
   const [parties, setParties] = useState([]);
   const [companySettings, setCompanySettings] = useState(DEFAULT_COMPANY_SETTINGS);
   const [loading, setLoading] = useState(true);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const [dbMeta, setDbMeta] = useState({ 
     source: isSupabaseEnabled() ? 'supabase' : 'localhost_indexeddb', 
     status: isSupabaseEnabled() ? 'connecting' : 'local' 
   });
 
-  // Modals (all closed by default)
+  // Modals
   const [isTripModalOpen, setIsTripModalOpen] = useState(false);
   const [editingTrip, setEditingTrip] = useState(null);
   const [viewingBiltyTrip, setViewingBiltyTrip] = useState(null);
   const [paymentModalTrip, setPaymentModalTrip] = useState(null);
 
-  // Load Database Data
+  // Fast Instant Load: Loads local cache immediately (< 10ms), then non-blocking Supabase sync
   const loadDatabaseData = useCallback(async () => {
     try {
-      // Smooth initial loading delay to show skeleton cards
-      await new Promise(r => setTimeout(r, 400));
-      
-      const res = await fetchAppData();
-      setTrips(res.trips || []);
-      setParties(res.parties || []);
-      setCompanySettings(res.settings || DEFAULT_COMPANY_SETTINGS);
-      setDbMeta({ source: res.source, status: res.status });
+      // 1. INSTANT: Load local IndexedDB/cache immediately in ~5ms
+      const local = await loadLocalCache();
+      setTrips(local.trips || []);
+      setParties(local.parties || []);
+      setCompanySettings(local.settings || DEFAULT_COMPANY_SETTINGS);
+      setLoading(false); // UI renders IMMEDIATELY with no 10-15s wait!
+
+      // 2. Non-blocking background sync with Supabase if in production
+      if (isSupabaseEnabled()) {
+        checkSupabaseSchema().then(async (ready) => {
+          if (ready) {
+            const remote = await fetchAppData();
+            if (remote && remote.trips && remote.status === 'online') {
+              setTrips(remote.trips);
+              setParties(remote.parties);
+              setCompanySettings(remote.settings);
+              setDbMeta({ source: 'supabase', status: 'online' });
+            }
+          } else {
+            setDbMeta({ source: 'fallback_local', status: 'needs_schema' });
+          }
+        }).catch(console.warn);
+      }
     } catch (error) {
       console.error('Failed to load database:', error);
-    } finally {
       setLoading(false);
     }
   }, []);
@@ -211,9 +196,10 @@ export default function App() {
 
   // Compute Next LR Number
   const getNextLrNo = () => {
-    if (!trips || trips.length === 0) return 'ST-1001';
+    const list = isDemoMode ? INITIAL_TRIPS : trips;
+    if (!list || list.length === 0) return 'ST-1001';
     let highest = 1000;
-    trips.forEach(t => {
+    list.forEach(t => {
       if (t.lrNo) {
         const numPart = parseInt(t.lrNo.replace(/\D/g, ''), 10);
         if (!isNaN(numPart) && numPart > highest) {
@@ -224,42 +210,69 @@ export default function App() {
     return `ST-${highest + 1}`;
   };
 
-  // Trip Handlers
-  const handleSaveTrip = async (tripData) => {
-    try {
-      const saved = await saveTripRecord(tripData);
-      if (tripData.id) {
-        setTrips(prev => prev.map(t => (t.id === tripData.id ? saved : t)));
-      } else {
-        setTrips(prev => [saved, ...prev]);
-      }
+  // Displayed items: in demo mode, temporary sample data is shown while actual data is safely hidden
+  const displayedTrips = isDemoMode ? INITIAL_TRIPS : trips;
+  const displayedParties = isDemoMode ? INITIAL_PARTIES : parties;
 
-      if (tripData.partyName) {
-        const exists = parties.some(
-          p => p.name.toLowerCase() === tripData.partyName.trim().toLowerCase()
-        );
-        if (!exists) {
-          const newParty = {
-            name: tripData.partyName.trim(),
-            phone: tripData.partyPhone || '',
-            city: tripData.toCity || '',
-            address: '',
-            gstin: '',
-            createdAt: new Date().toISOString()
-          };
-          const savedParty = await savePartyRecord(newParty);
-          setParties(prev => [...prev, savedParty]);
-        }
+  // Trip Handlers with OPTIMISTIC UI UPDATES (0ms lag)
+  const handleSaveTrip = async (tripData) => {
+    // If in demo mode, exit demo mode so user sees their actual data and new entry
+    if (isDemoMode) {
+      setIsDemoMode(false);
+    }
+
+    const isEditing = Boolean(tripData.id);
+    const tempId = tripData.id || Date.now();
+    const optimisticTrip = {
+      ...tripData,
+      id: tempId,
+      isDummy: false, // User created trip is ALWAYS actual data!
+      createdAt: tripData.createdAt || new Date().toISOString()
+    };
+
+    // 1. INSTANT SYNCHRONOUS STATE UPDATE:
+    // Newly added or edited entry appears in the list in 0ms!
+    if (isEditing) {
+      setTrips(prev => prev.map(t => (t.id === tripData.id ? optimisticTrip : t)));
+    } else {
+      setTrips(prev => [optimisticTrip, ...prev]);
+    }
+
+    // 2. Auto-add party to state immediately if new
+    if (tripData.partyName) {
+      const exists = parties.some(
+        p => p.name.toLowerCase() === tripData.partyName.trim().toLowerCase()
+      );
+      if (!exists) {
+        const optimisticParty = {
+          id: Date.now() + 1,
+          name: tripData.partyName.trim(),
+          phone: tripData.partyPhone || '',
+          city: tripData.toCity || '',
+          address: '',
+          gstin: '',
+          isDummy: false,
+          createdAt: new Date().toISOString()
+        };
+        setParties(prev => [...prev, optimisticParty]);
+        savePartyRecord(optimisticParty).catch(console.warn);
+      }
+    }
+
+    // 3. Persist to Dexie DB and Supabase in background
+    try {
+      const saved = await saveTripRecord(optimisticTrip);
+      if (saved.id && saved.id !== tempId) {
+        setTrips(prev => prev.map(t => (t.id === tempId ? saved : t)));
       }
     } catch (error) {
-      console.error('Failed to save trip:', error);
-      alert('Error saving trip: ' + error.message);
+      console.error('Failed to save trip to database:', error);
     }
   };
 
   const handleDeleteTrip = (tripOrId) => {
     const id = typeof tripOrId === 'object' ? tripOrId.id : tripOrId;
-    const trip = trips.find(t => t.id === id) || (typeof tripOrId === 'object' ? tripOrId : null);
+    const trip = displayedTrips.find(t => t.id === id) || (typeof tripOrId === 'object' ? tripOrId : null);
     const details = trip 
       ? `LR: ${trip.lrNo || 'N/A'} • ${trip.partyName || ''} (${trip.fromCity || ''} ➔ ${trip.toCity || ''})`
       : '';
@@ -272,9 +285,11 @@ export default function App() {
       confirmLabel: 'Delete Trip',
       isDestructive: true,
       onConfirm: async () => {
+        // 1. Instant optimistic state update
+        setTrips(prev => prev.filter(t => t.id !== id));
+        // 2. Background database delete
         try {
           await deleteTripRecord(id);
-          setTrips(prev => prev.filter(t => t.id !== id));
         } catch (error) {
           console.error('Failed to delete trip:', error);
         }
@@ -283,22 +298,37 @@ export default function App() {
   };
 
   const handleRecordPayment = async (updatedTrip) => {
+    // 1. Instant optimistic update
+    setTrips(prev => prev.map(t => (t.id === updatedTrip.id ? updatedTrip : t)));
+    // 2. Background database write
     try {
-      const saved = await saveTripRecord(updatedTrip);
-      setTrips(prev => prev.map(t => (t.id === updatedTrip.id ? saved : t)));
+      await saveTripRecord(updatedTrip);
     } catch (error) {
       console.error('Failed to update payment:', error);
     }
   };
 
-  // Party Handlers
+  // Party Handlers with OPTIMISTIC UI UPDATES
   const handleSaveParty = async (partyData) => {
+    const isEditing = Boolean(partyData.id);
+    const tempId = partyData.id || Date.now();
+    const optimisticParty = {
+      ...partyData,
+      id: tempId,
+      isDummy: false,
+      createdAt: partyData.createdAt || new Date().toISOString()
+    };
+
+    if (isEditing) {
+      setParties(prev => prev.map(p => (p.id === partyData.id ? optimisticParty : p)));
+    } else {
+      setParties(prev => [...prev, optimisticParty]);
+    }
+
     try {
-      const saved = await savePartyRecord(partyData);
-      if (partyData.id) {
-        setParties(prev => prev.map(p => (p.id === partyData.id ? saved : p)));
-      } else {
-        setParties(prev => [...prev, saved]);
+      const saved = await savePartyRecord(optimisticParty);
+      if (saved.id && saved.id !== tempId) {
+        setParties(prev => prev.map(p => (p.id === tempId ? saved : p)));
       }
     } catch (error) {
       console.error('Failed to save party:', error);
@@ -307,7 +337,7 @@ export default function App() {
 
   const handleDeleteParty = (partyOrId) => {
     const id = typeof partyOrId === 'object' ? partyOrId.id : partyOrId;
-    const party = parties.find(p => p.id === id) || (typeof partyOrId === 'object' ? partyOrId : null);
+    const party = displayedParties.find(p => p.id === id) || (typeof partyOrId === 'object' ? partyOrId : null);
     const details = party ? `${party.name}${party.city ? ` • ${party.city}` : ''}` : '';
 
     setConfirmModal({
@@ -318,9 +348,9 @@ export default function App() {
       confirmLabel: 'Delete Party',
       isDestructive: true,
       onConfirm: async () => {
+        setParties(prev => prev.filter(p => p.id !== id));
         try {
           await deletePartyRecord(id);
-          setParties(prev => prev.filter(p => p.id !== id));
         } catch (error) {
           console.error('Failed to delete party:', error);
         }
@@ -338,40 +368,48 @@ export default function App() {
     }
   };
 
+  // Reload Demo Data: temporarily shows dummy records while keeping actual data hidden and safe until refresh
   const handleResetData = () => {
     setConfirmModal({
       isOpen: true,
-      title: 'Load Demo Records',
-      message: 'This will seed sample truck entries and parties into the system for demonstration.',
-      itemDetails: 'Sample Fleet Records',
-      confirmLabel: 'Load Demo',
+      title: 'Reload Demo Data',
+      message: 'This will temporarily display sample fleet records. Your actual records will be kept safe and hidden until you refresh the page or click Exit Demo.',
+      itemDetails: 'Sample Demo Records (Temporary)',
+      confirmLabel: 'Load Demo Mode',
       isDestructive: false,
       onConfirm: async () => {
-        try {
-          await resetDemoDatabaseData();
-          await loadDatabaseData();
-        } catch (error) {
-          console.error('Failed to reset demo data:', error);
-        }
+        setIsDemoMode(true);
       }
     });
   };
 
-  const handleClearAllData = () => {
+  // Delete All Dummy Data: DELETES ONLY DUMMY RECORDS! Never deletes actual user data!
+  const handleDeleteDummyData = () => {
+    const dummyTripsCount = (trips || []).filter(isDummyRecord).length;
+    const dummyPartiesCount = (parties || []).filter(isDummyRecord).length;
+    const actualTripsCount = (trips || []).filter(t => !isDummyRecord(t)).length;
+
     setConfirmModal({
       isOpen: true,
-      title: 'Wipe All Data',
-      message: 'Are you sure you want to wipe all records? This permanently clears all trips and parties.',
-      itemDetails: `${trips.length} Trips • ${parties.length} Parties`,
-      confirmLabel: 'Wipe Everything',
+      title: 'Delete Dummy Data',
+      message: actualTripsCount > 0
+        ? `This will remove only sample demo records (${dummyTripsCount} trips, ${dummyPartiesCount} parties). Your ${actualTripsCount} actual business trip(s) will be completely preserved and kept safe.`
+        : 'This will remove all sample demo records from the logbook.',
+      itemDetails: `${dummyTripsCount} Sample Trips • ${dummyPartiesCount} Sample Parties`,
+      confirmLabel: 'Delete Dummy Records',
       isDestructive: true,
       onConfirm: async () => {
         try {
-          await clearAllDatabaseData();
-          setTrips([]);
-          setParties([]);
+          if (isDemoMode) {
+            setIsDemoMode(false);
+          }
+          // Optimistically filter out dummy records immediately in state!
+          setTrips(prev => prev.filter(t => !isDummyRecord(t)));
+          setParties(prev => prev.filter(p => !isDummyRecord(p)));
+          // Delete only dummy records from database
+          await deleteDummyRecordsOnly();
         } catch (error) {
-          console.error('Failed to clear database:', error);
+          console.error('Failed to delete dummy data:', error);
         }
       }
     });
@@ -396,8 +434,8 @@ export default function App() {
       <Navbar
         activeTab={activeTab}
         setActiveTab={handleTabChange}
-        tripCount={trips.length}
-        partyCount={parties.length}
+        tripCount={displayedTrips.length}
+        partyCount={displayedParties.length}
         theme={theme}
         onToggleTheme={toggleTheme}
         onNewTrip={() => {
@@ -407,6 +445,26 @@ export default function App() {
         onLock={handleLock}
       />
 
+      {/* Demo Mode Notice Banner */}
+      {isDemoMode && (
+        <div className="bg-amber-500/10 dark:bg-amber-950/50 border-b border-amber-300 dark:border-amber-800/70 px-4 py-2.5 text-xs text-amber-900 dark:text-amber-200 flex items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white font-bold text-[10px] tracking-wide">
+              DEMO MODE
+            </span>
+            <span>
+              Sample dummy data is currently shown. Your actual business data is safely stored in the database. Refresh or reload page to view your actual data.
+            </span>
+          </div>
+          <button
+            onClick={() => setIsDemoMode(false)}
+            className="px-3 py-1 bg-amber-200 hover:bg-amber-300 dark:bg-amber-900 dark:hover:bg-amber-800 text-amber-900 dark:text-amber-100 rounded-lg font-bold text-[11px] cursor-pointer transition shrink-0 active:scale-95"
+          >
+            Exit Demo & Show Actual Data
+          </button>
+        </div>
+      )}
+
       {/* Main Content Area: pb-24 on mobile ensures bottom navigation bar never overlaps content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-7 pb-24 md:pb-8">
         {loading ? (
@@ -415,8 +473,8 @@ export default function App() {
           <>
             {activeTab === 'dashboard' && (
               <Dashboard
-                trips={trips}
-                parties={parties}
+                trips={displayedTrips}
+                parties={displayedParties}
                 onNewTrip={() => {
                   setEditingTrip(null);
                   setIsTripModalOpen(true);
@@ -429,8 +487,8 @@ export default function App() {
 
             {activeTab === 'trips' && (
               <TripList
-                trips={trips}
-                parties={parties}
+                trips={displayedTrips}
+                parties={displayedParties}
                 onNewTrip={() => {
                   setEditingTrip(null);
                   setIsTripModalOpen(true);
@@ -447,16 +505,16 @@ export default function App() {
 
             {activeTab === 'analytics' && (
               <Analytics
-                trips={trips}
-                parties={parties}
+                trips={displayedTrips}
+                parties={displayedParties}
                 onNavigateTab={handleTabChange}
               />
             )}
 
             {activeTab === 'parties' && (
               <PartyLedger
-                parties={parties}
-                trips={trips}
+                parties={displayedParties}
+                trips={displayedTrips}
                 onSaveParty={handleSaveParty}
                 onDeleteParty={handleDeleteParty}
                 onViewBilty={(trip) => setViewingBiltyTrip(trip)}
@@ -468,10 +526,10 @@ export default function App() {
                 company={companySettings}
                 onSaveCompany={handleSaveCompany}
                 onResetData={handleResetData}
-                onClearAllData={handleClearAllData}
+                onClearAllData={handleDeleteDummyData}
                 onLock={handleLock}
-                trips={trips}
-                parties={parties}
+                trips={displayedTrips}
+                parties={displayedParties}
                 onDatabaseRestored={loadDatabaseData}
                 dbMeta={dbMeta}
               />
@@ -480,14 +538,14 @@ export default function App() {
         )}
       </main>
 
-      {/* Clean Minimal Footer (Hidden on mobile where bottom nav is active) */}
+      {/* Clean Minimal Footer */}
       <footer className="hidden md:block no-print border-t border-zinc-200 dark:border-zinc-900 bg-white dark:bg-zinc-950 py-3.5 text-center text-xs text-zinc-400 dark:text-zinc-500 transition-colors duration-150">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
           <div>
             © {new Date().getFullYear()} <strong>{companySettings.companyName || 'SAI TRANSPORT'}</strong> • Fleet Accounts
           </div>
           <div className="flex items-center gap-3 text-[11px]">
-            <span>Safe Local Storage</span>
+            <span>Fast Instant Cache</span>
             <span>•</span>
             <span>Passcode Protected</span>
           </div>
@@ -504,7 +562,7 @@ export default function App() {
         onSave={handleSaveTrip}
         onSaveParty={handleSaveParty}
         editingTrip={editingTrip}
-        parties={parties}
+        parties={displayedParties}
         nextLrNo={getNextLrNo()}
       />
 

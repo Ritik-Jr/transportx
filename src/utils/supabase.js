@@ -18,9 +18,49 @@ export const isSupabaseEnabled = () => {
   return !isLocal && Boolean(supabaseUrl && supabaseKey);
 };
 
+let cachedSchemaStatus = null;
+
+/**
+ * Fast non-blocking check whether Supabase tables (e.g., trips) exist.
+ * Times out in 2 seconds max to never delay user interface.
+ */
+export const checkSupabaseSchema = async () => {
+  if (!isSupabaseEnabled()) return false;
+  if (cachedSchemaStatus !== null) return cachedSchemaStatus;
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2000);
+    const { error } = await supabase
+      .from('trips')
+      .select('id')
+      .limit(1)
+      .abortSignal(controller.signal);
+    clearTimeout(timer);
+
+    if (error) {
+      // PGRST205: table doesn't exist in schema cache
+      if (error.code === 'PGRST205') {
+        cachedSchemaStatus = false;
+        return false;
+      }
+      cachedSchemaStatus = false;
+      return false;
+    }
+    cachedSchemaStatus = true;
+    return true;
+  } catch (_) {
+    cachedSchemaStatus = false;
+    return false;
+  }
+};
+
+export const getCachedSchemaStatus = () => cachedSchemaStatus;
+
 // Normalizer: Supabase Row -> App Trip Object
 export const mapTripFromSupabase = (row) => ({
   id: row.id,
+  isDummy: Boolean(row.is_dummy || row.isDummy),
   lrNo: row.lr_no || row.lrNo || '',
   partyName: row.party_name || row.partyName || '',
   partyPhone: row.party_phone || row.partyPhone || '',
@@ -48,6 +88,7 @@ export const mapTripFromSupabase = (row) => ({
 // Converter: App Trip Object -> Supabase Row
 export const mapTripToSupabase = (trip) => {
   const payload = {
+    is_dummy: Boolean(trip.isDummy),
     lr_no: trip.lrNo || '',
     party_name: trip.partyName || '',
     party_phone: trip.partyPhone || '',
@@ -79,6 +120,7 @@ export const mapTripToSupabase = (trip) => {
 // Normalizer: Supabase Row -> App Party Object
 export const mapPartyFromSupabase = (row) => ({
   id: row.id,
+  isDummy: Boolean(row.is_dummy || row.isDummy),
   name: row.name || '',
   phone: row.phone || '',
   gstin: row.gstin || '',
@@ -90,6 +132,7 @@ export const mapPartyFromSupabase = (row) => ({
 // Converter: App Party Object -> Supabase Row
 export const mapPartyToSupabase = (party) => {
   const payload = {
+    is_dummy: Boolean(party.isDummy),
     name: party.name || '',
     phone: party.phone || '',
     gstin: party.gstin || '',

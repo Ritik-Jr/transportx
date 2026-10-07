@@ -14,6 +14,7 @@ import {
   Printer
 } from 'lucide-react';
 import Pagination from './Pagination';
+import { isDummyRecord } from '../db';
 import { formatPartyReminderWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
 
 export default function PartyLedger({ 
@@ -297,9 +298,16 @@ export default function PartyLedger({
                       <Building2 className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-zinc-900 dark:text-white text-sm sm:text-base line-clamp-1">
-                        {party.name}
-                      </h3>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h3 className="font-bold text-zinc-900 dark:text-white text-sm sm:text-base line-clamp-1">
+                          {party.name}
+                        </h3>
+                        {isDummyRecord(party) && (
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
+                            Dummy
+                          </span>
+                        )}
+                      </div>
                       {party.city && (
                         <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1 mt-0.5">
                           <MapPin className="w-3.5 h-3.5 text-zinc-400" />
