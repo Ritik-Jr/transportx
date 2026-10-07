@@ -31,8 +31,8 @@ const STATUS_OPTIONS = [
 ];
 
 const FORMAT_OPTIONS = [
-  { id: 'table', label: 'Table Format', shortLabel: 'Table', icon: List },
-  { id: 'cards', label: 'Card Format', shortLabel: 'Cards', icon: LayoutGrid }
+  { id: 'table', label: 'Table', shortLabel: 'Table', icon: List },
+  { id: 'cards', label: 'Cards', shortLabel: 'Cards', icon: LayoutGrid }
 ];
 
 export default function TripList({ 
@@ -414,8 +414,9 @@ export default function TripList({
         </div>
       ) : (
         <>
-          {/* Table View */}
-          <div className={`${mobileViewMode === 'table' ? 'block' : 'hidden'} bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs`}>
+          {/* Table or Cards View based on active format */}
+          {mobileViewMode === 'table' ? (
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-xs">
             {/* Mobile swipe helper */}
             <div className="md:hidden px-3.5 py-2 bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 text-[11px] text-zinc-500 dark:text-zinc-400 flex items-center justify-between font-medium">
               <span>⇄ Swipe horizontally to view all columns</span>
@@ -613,9 +614,9 @@ export default function TripList({
               </table>
             </div>
           </div>
-
-          {/* Cards View */}
-          <div className={`${mobileViewMode === 'cards' ? 'block' : 'hidden'} space-y-3.5 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:space-y-0 sm:gap-3.5`}>
+          ) : (
+            /* Cards View */
+            <div className="space-y-3.5 sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:space-y-0 sm:gap-3.5">
             {paginatedTrips.map((trip) => (
               <div
                 key={trip.id || trip.lrNo}
@@ -790,8 +791,9 @@ export default function TripList({
               </div>
             ))}
           </div>
+        )}
 
-          {/* Pagination Controls */}
+        {/* Pagination Controls */}
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-4 py-2.5 shadow-xs">
             <Pagination
               currentPage={safeCurrentPage}

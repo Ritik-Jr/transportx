@@ -253,15 +253,16 @@ export default function PartyLedger({
           />
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+          <span className="hidden sm:inline text-xs text-zinc-400 font-medium pl-1">Sort:</span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
             className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-sm sm:text-xs font-semibold focus:outline-none cursor-pointer box-border"
           >
-            <option value="balance-desc">Sort: Highest Due</option>
-            <option value="name-asc">Sort: Name (A-Z)</option>
-            <option value="trips-desc">Sort: Most Trips</option>
-            <option value="freight-desc">Sort: Total Freight</option>
+            <option value="balance-desc">Highest Due</option>
+            <option value="name-asc">Name (A-Z)</option>
+            <option value="trips-desc">Most Trips</option>
+            <option value="freight-desc">Total Freight</option>
           </select>
         </div>
       </div>
