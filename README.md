@@ -36,11 +36,10 @@ Log and manage all essential transport and logistics information:
 - Includes TransportX company branding, Consignor particulars, Truck & Driver details, cargo table, freight breakdown, and authorized signature stamps.
 - One-click browser print (`Ctrl+P` or Print button) with clean black-and-white print stylesheets.
 
-### 4. 🔒 Built-in Passcode Protection
-- Access-gate modal blocks unauthorized users before any data is revealed.
-- **Default Master Passcode**: `116600`
-- Configurable in the **Settings** tab (change passcode, update company details).
-- Session memory option ("Remember this device") for convenience.
+### 4. 🔒 Built-in Access Protection
+- Access-gate modal blocks unauthorized users before any fleet data is revealed.
+- Configurable passcode protection managed securely within the **Settings** tab.
+- Session memory option ("Remember this device") for authenticated devices.
 
 ### 5. 💾 Zero-Data-Loss Architecture (GitHub Pages Ready)
 GitHub Pages is a static CDN host without a traditional backend database. TransportX solves this with a **zero-data-loss storage system**:
@@ -91,14 +90,6 @@ Run:
 npm run deploy
 ```
 This runs `npm run build` and automatically pushes the production `dist` directory to the `gh-pages` branch on GitHub!
-
----
-
-## 🔐 Credentials & Default Settings
-
-- **Default 6-Digit Passcode**: `116600`
-- **Default Company Name**: `TransportX` (Configurable in Settings)
-- **To Change Passcode**: Go to **Settings** > **Change 6-Digit Passcode**, enter current passcode `116600`, and set your new 6-digit code.
 
 ---
 
