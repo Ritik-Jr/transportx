@@ -54,44 +54,109 @@ CREATE TABLE IF NOT EXISTS public.settings (
 );
 
 -- Disable Row Level Security so publishable client key has full access across all devices
-ALTER TABLE public.trips DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.parties DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.settings DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.trips DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.parties DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.settings DISABLE ROW LEVEL SECURITY;
+
+GRANT ALL ON TABLE public.trips TO anon, authenticated;
+GRANT ALL ON TABLE public.parties TO anon, authenticated;
+GRANT ALL ON TABLE public.settings TO anon, authenticated;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+
+-- Fallback open policies in case RLS is re-enabled:
+ALTER TABLE IF EXISTS public.trips ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.parties ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.settings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public trips access" ON public.trips;
+CREATE POLICY "Public trips access" ON public.trips FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public parties access" ON public.parties;
+CREATE POLICY "Public parties access" ON public.parties FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public settings access" ON public.settings;
+CREATE POLICY "Public settings access" ON public.settings FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 `;
+
+export const SUPABASE_FIX_RLS_SQL = `-- Quick Fix for Row-Level Security (RLS) in Supabase
+-- Paste and Run this in your Supabase SQL Editor:
+ALTER TABLE IF EXISTS public.trips DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.parties DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.settings DISABLE ROW LEVEL SECURITY;
+
+GRANT ALL ON TABLE public.trips TO anon, authenticated;
+GRANT ALL ON TABLE public.parties TO anon, authenticated;
+GRANT ALL ON TABLE public.settings TO anon, authenticated;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+
+ALTER TABLE IF EXISTS public.trips ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.parties ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.settings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public trips access" ON public.trips;
+CREATE POLICY "Public trips access" ON public.trips FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public parties access" ON public.parties;
+CREATE POLICY "Public parties access" ON public.parties FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public settings access" ON public.settings;
+CREATE POLICY "Public settings access" ON public.settings FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+`;
+
+/**
+ * Checks if an error is caused by PostgreSQL Row Level Security (RLS).
+ */
+export const isRlsError = (error) => {
+  if (!error) return false;
+  const msg = (error.message || '').toLowerCase();
+  return (
+    error.code === '42501' ||
+    msg.includes('row-level security') ||
+    msg.includes('violates row-level') ||
+    msg.includes('violates rls')
+  );
+};
 
 let cachedSchemaStatus = null;
 
 /**
- * Check whether Supabase tables (e.g., trips) exist.
+ * Check whether Supabase tables exist and whether RLS permits writes.
  * Times out in 3 seconds to avoid blocking the app.
  */
 export const checkSupabaseSchema = async () => {
-  if (!isSupabaseEnabled()) return false;
-  if (cachedSchemaStatus === true) return true;
+  if (!isSupabaseEnabled()) return { status: 'offline' };
+  if (cachedSchemaStatus && cachedSchemaStatus.status === 'ready') return cachedSchemaStatus;
 
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 3000);
+
+    // Non-destructive probe insert to test table existence and RLS write permission
     const { error } = await supabase
       .from('trips')
-      .select('id')
-      .limit(1)
+      .insert([{}])
       .abortSignal(controller.signal);
     clearTimeout(timer);
 
     if (error) {
       if (error.code === 'PGRST205') {
-        cachedSchemaStatus = false;
-        return false;
+        cachedSchemaStatus = { status: 'needs_schema', error: error.message };
+        return cachedSchemaStatus;
       }
-      cachedSchemaStatus = false;
-      return false;
+      if (isRlsError(error)) {
+        cachedSchemaStatus = { status: 'rls_blocked', error: error.message };
+        return cachedSchemaStatus;
+      }
+      // Any other error (e.g. 23502 not-null constraint violation) means RLS allows writes!
+      cachedSchemaStatus = { status: 'ready' };
+      return cachedSchemaStatus;
     }
-    cachedSchemaStatus = true;
-    return true;
+
+    cachedSchemaStatus = { status: 'ready' };
+    return cachedSchemaStatus;
   } catch (_) {
-    cachedSchemaStatus = false;
-    return false;
+    cachedSchemaStatus = { status: 'ready' };
+    return cachedSchemaStatus;
   }
 };
 

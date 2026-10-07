@@ -12,7 +12,10 @@ import {
 import { 
   isSupabaseEnabled, 
   checkSupabaseSchema, 
-  SUPABASE_SCHEMA_SQL 
+  SUPABASE_SCHEMA_SQL,
+  SUPABASE_FIX_RLS_SQL,
+  isRlsError,
+  setCachedSchemaStatus
 } from './utils/supabase';
 import AuthGate from './components/AuthGate';
 import Navbar from './components/Navbar';
@@ -26,7 +29,7 @@ import PaymentModal from './components/PaymentModal';
 import Analytics from './components/Analytics';
 import SkeletonLoader from './components/SkeletonLoader';
 import ConfirmModal from './components/ConfirmModal';
-import { Database, Copy, Check, ExternalLink } from 'lucide-react';
+import { Database, Copy, Check, ExternalLink, ShieldAlert } from 'lucide-react';
 
 const VALID_TABS = ['dashboard', 'trips', 'analytics', 'parties', 'settings'];
 
@@ -139,6 +142,8 @@ export default function App() {
   const [companySettings, setCompanySettings] = useState(DEFAULT_COMPANY_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [copiedSql, setCopiedSql] = useState(false);
+  const [copiedRlsSql, setCopiedRlsSql] = useState(false);
+  const [isRlsModalOpen, setIsRlsModalOpen] = useState(false);
   const [dbMeta, setDbMeta] = useState({ 
     source: 'supabase', 
     status: 'connecting' 
@@ -199,6 +204,12 @@ export default function App() {
     setTimeout(() => setCopiedSql(false), 2500);
   };
 
+  const handleCopyFixRlsSql = () => {
+    navigator.clipboard?.writeText(SUPABASE_FIX_RLS_SQL);
+    setCopiedRlsSql(true);
+    setTimeout(() => setCopiedRlsSql(false), 2500);
+  };
+
   // Save Trip directly to Supabase cloud
   const handleSaveTrip = async (tripData) => {
     try {
@@ -229,7 +240,12 @@ export default function App() {
       }
     } catch (error) {
       console.error('Failed to save trip to cloud database:', error);
-      alert('Database error: ' + error.message + '. Please ensure Supabase tables are created.');
+      if (isRlsError(error)) {
+        handleCopyFixRlsSql();
+        setIsRlsModalOpen(true);
+      } else {
+        alert('Database error: ' + error.message + '. Please ensure Supabase tables are created.');
+      }
     }
   };
 
@@ -279,7 +295,12 @@ export default function App() {
       }
     } catch (error) {
       console.error('Failed to save party:', error);
-      alert('Save party error: ' + error.message);
+      if (isRlsError(error)) {
+        handleCopyFixRlsSql();
+        setIsRlsModalOpen(true);
+      } else {
+        alert('Save party error: ' + error.message);
+      }
     }
   };
 
@@ -386,6 +407,39 @@ export default function App() {
             </button>
             <a
               href="https://supabase.com/dashboard/project/znczyfkpcpkmhutlmenh/sql"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2.5 py-1 bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 rounded-lg font-bold text-[11px] flex items-center gap-1 hover:opacity-90"
+            >
+              <span>Open SQL Editor</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* Supabase RLS Notice Banner (Visible when RLS is active and blocking inserts) */}
+      {dbMeta.status === 'rls_blocked' && (
+        <div className="bg-rose-500/15 border-b border-rose-500/30 px-4 py-2.5 text-xs text-rose-900 dark:text-rose-200 flex flex-wrap items-center justify-between gap-2 shadow-xs">
+          <div className="flex items-center gap-2">
+            <ShieldAlert className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+            <span>
+              <strong>Supabase RLS Policy Blocking Writes:</strong> Row-Level Security is currently active on table 'trips' and blocking new records. Run the quick SQL fix in your Supabase SQL Editor.
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => {
+                handleCopyFixRlsSql();
+                setIsRlsModalOpen(true);
+              }}
+              className="px-2.5 py-1 bg-rose-200 hover:bg-rose-300 dark:bg-rose-900 dark:hover:bg-rose-800 text-rose-900 dark:text-rose-100 rounded-lg font-bold text-[11px] flex items-center gap-1 cursor-pointer transition active:scale-95"
+            >
+              <Copy className="w-3.5 h-3.5" />
+              <span>Fix RLS Policy</span>
+            </button>
+            <a
+              href="https://supabase.com/dashboard/project/znczyfkpcpkmhutlmenh/sql/new"
               target="_blank"
               rel="noopener noreferrer"
               className="px-2.5 py-1 bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 rounded-lg font-bold text-[11px] flex items-center gap-1 hover:opacity-90"
@@ -527,6 +581,73 @@ export default function App() {
         confirmLabel={confirmModal.confirmLabel}
         isDestructive={confirmModal.isDestructive}
       />
+
+      {/* Row-Level Security (RLS) Fix Modal */}
+      {isRlsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-xl w-full p-4 sm:p-5 shadow-2xl space-y-3.5">
+            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center border border-rose-200 dark:border-rose-800/50 shrink-0">
+                  <ShieldAlert className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-zinc-900 dark:text-white text-sm sm:text-base">
+                    Fix Row-Level Security (RLS) Policy
+                  </h3>
+                  <p className="text-[11px] text-zinc-500">Supabase requires permissions to allow saving records</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsRlsModalOpen(false)}
+                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-sm font-semibold cursor-pointer p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed">
+              Your tables exist, but Supabase Row-Level Security is blocking records from being inserted. 
+              Run this quick SQL script in your Supabase SQL Editor to grant full access:
+            </p>
+
+            <div className="relative">
+              <pre className="p-3 bg-zinc-950 text-zinc-200 rounded-xl text-[11px] font-mono max-h-48 overflow-y-auto leading-relaxed border border-zinc-800 select-all">
+                {SUPABASE_FIX_RLS_SQL}
+              </pre>
+              <button
+                onClick={handleCopyFixRlsSql}
+                className="absolute top-2.5 right-2.5 px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-medium flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
+              >
+                {copiedRlsSql ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copiedRlsSql ? 'Copied!' : 'Copy Fix SQL'}</span>
+              </button>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+              <a
+                href="https://supabase.com/dashboard/project/znczyfkpcpkmhutlmenh/sql/new"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Open Supabase SQL Editor</span>
+              </a>
+              <button
+                onClick={() => {
+                  setIsRlsModalOpen(false);
+                  setCachedSchemaStatus(null);
+                  loadDatabaseData();
+                }}
+                className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold cursor-pointer"
+              >
+                I've Run the SQL (Verify & Refresh)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

@@ -6,8 +6,12 @@ import {
   mapTripToSupabase, 
   mapPartyFromSupabase, 
   mapPartyToSupabase,
-  SUPABASE_SCHEMA_SQL
+  SUPABASE_SCHEMA_SQL,
+  SUPABASE_FIX_RLS_SQL,
+  isRlsError
 } from '../utils/supabase';
+
+export { SUPABASE_SCHEMA_SQL, SUPABASE_FIX_RLS_SQL, isRlsError };
 
 // Cleanup any old local IndexedDB database and dummy localStorage flags from previous versions
 export async function purgeLocalBrowserStorage() {
@@ -48,8 +52,8 @@ export const DEFAULT_COMPANY_SETTINGS = {
 export async function fetchAppData() {
   await purgeLocalBrowserStorage();
 
-  const hasSchema = await checkSupabaseSchema();
-  if (!hasSchema) {
+  const schemaCheck = await checkSupabaseSchema();
+  if (schemaCheck.status === 'needs_schema') {
     return {
       trips: [],
       parties: [],
@@ -68,13 +72,15 @@ export async function fetchAppData() {
 
     if (tripsRes.error || partiesRes.error) {
       console.warn('Supabase query error:', tripsRes.error || partiesRes.error);
+      const queryErr = tripsRes.error || partiesRes.error;
+      const isRls = isRlsError(queryErr);
       return {
         trips: [],
         parties: [],
         settings: DEFAULT_COMPANY_SETTINGS,
         source: 'supabase',
-        status: 'error',
-        error: (tripsRes.error || partiesRes.error)?.message
+        status: isRls ? 'rls_blocked' : 'error',
+        error: queryErr?.message
       };
     }
 
@@ -93,7 +99,7 @@ export async function fetchAppData() {
       parties: loadedParties,
       settings: settingsMap,
       source: 'supabase',
-      status: 'online'
+      status: schemaCheck.status === 'rls_blocked' ? 'rls_blocked' : 'online'
     };
   } catch (err) {
     console.error('Failed to fetch from Supabase:', err);
@@ -102,7 +108,7 @@ export async function fetchAppData() {
       parties: [],
       settings: DEFAULT_COMPANY_SETTINGS,
       source: 'supabase',
-      status: 'error',
+      status: isRlsError(err) ? 'rls_blocked' : 'error',
       error: err.message
     };
   }
