@@ -1052,8 +1052,8 @@ export default function TruckSuccessAnimation({
       prevPointerX = clientX;
       prevPointerY = clientY;
 
-      // Orbit around truck
-      theta += deltaX * 0.006;
+      // Orbit around truck (natural turntable drag: dragging left rotates truck to left)
+      theta -= deltaX * 0.006;
       pitch = Math.max(-0.45, Math.min(0.85, pitch + deltaY * 0.004));
     };
 
