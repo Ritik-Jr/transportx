@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 import fs from 'node:fs'
+import path from 'node:path'
+
+const ROUTE_DIRS = ['trips', 'analytics', 'parties', 'settings', 'dashboard'];
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
@@ -14,11 +17,20 @@ export default defineConfig(({ command }) => ({
       closeBundle() {
         try {
           if (fs.existsSync('dist/index.html')) {
-            // Generate dist/404.html for GitHub Pages SPA deep links and reloads
-            fs.copyFileSync('dist/index.html', 'dist/404.html');
+            const indexHtml = fs.readFileSync('dist/index.html', 'utf-8');
+
+            // 1. Generate physical route folders in dist/ for 200 OK responses on page reloads
+            ROUTE_DIRS.forEach(route => {
+              const routeDir = path.join('dist', route);
+              if (!fs.existsSync(routeDir)) {
+                fs.mkdirSync(routeDir, { recursive: true });
+              }
+              fs.writeFileSync(path.join(routeDir, 'index.html'), indexHtml, 'utf-8');
+            });
           }
+
+          // 2. Mirror complete dist output to docs/ for GitHub Pages 'main /docs' option
           if (fs.existsSync('dist')) {
-            // Also sync to docs folder so GitHub Pages 'main /docs' option is supported
             fs.cpSync('dist', 'docs', { recursive: true });
           }
         } catch (err) {
