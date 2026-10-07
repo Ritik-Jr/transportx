@@ -10,8 +10,6 @@ import {
   DEFAULT_COMPANY_SETTINGS 
 } from './db';
 import { 
-  isSupabaseEnabled, 
-  checkSupabaseSchema, 
   SUPABASE_SCHEMA_SQL,
   SUPABASE_FIX_RLS_SQL,
   isRlsError,
@@ -232,6 +230,7 @@ export default function App() {
           setParties(prev => [...prev, savedParty]);
         }
       }
+      return saved;
     } catch (error) {
       console.error('Failed to save trip to cloud database:', error);
       if (isRlsError(error)) {
@@ -240,6 +239,7 @@ export default function App() {
       } else {
         alert('Database error: ' + error.message + '. Please ensure Supabase tables are created.');
       }
+      throw error;
     }
   };
 

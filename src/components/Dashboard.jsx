@@ -24,7 +24,7 @@ export default function Dashboard({
   onNewTrip, 
   onViewTrip, 
   onNavigateTab,
-  onRecordPayment 
+  onRecordPayment: _onRecordPayment 
 }) {
   const cleanPhone = (phone) => {
     if (!phone) return '';

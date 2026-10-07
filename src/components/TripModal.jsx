@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import confetti from 'canvas-confetti';
 import { 
   X, 
@@ -49,7 +49,7 @@ export default function TripModal({
   isOpen, 
   onClose, 
   onSave, 
-  onSaveParty,
+  onSaveParty: _onSaveParty,
   editingTrip = null, 
   parties = [], 
   trips = [],
@@ -58,6 +58,10 @@ export default function TripModal({
   const [currentStep, setCurrentStep] = useState(1);
   const [isSuccessView, setIsSuccessView] = useState(false);
   const [savedTripSummary, setSavedTripSummary] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const prevIsOpenRef = useRef(false);
+  const prevEditingIdRef = useRef(null);
 
   const [formData, setFormData] = useState({
     lrNo: '',
@@ -84,60 +88,82 @@ export default function TripModal({
   const [partyMode, setPartyMode] = useState('existing'); // 'existing' | 'new'
   const [selectedPartyId, setSelectedPartyId] = useState('');
 
+  // Only initialize/reset when modal transitions from closed to open, or when editing target changes
   useEffect(() => {
-    if (editingTrip) {
-      setFormData({
-        ...editingTrip,
-        vehicleType: normalizeVehicleType(editingTrip.vehicleType),
-        amount: String(editingTrip.amount || ''),
-        advance: String(editingTrip.advance || '0'),
-        balance: String(editingTrip.balance || '0'),
-        remarks: editingTrip.remarks || ''
-      });
+    if (!isOpen) {
+      prevIsOpenRef.current = false;
+      prevEditingIdRef.current = null;
+      setIsSuccessView(false);
+      setSavedTripSummary(null);
+      setCurrentStep(1);
+      setErrors({});
+      setIsSaving(false);
+      return;
+    }
 
-      const matchedParty = parties.find(
-        p => p.name.trim().toLowerCase() === (editingTrip.partyName || '').trim().toLowerCase()
-      );
-      if (matchedParty) {
-        setPartyMode('existing');
-        setSelectedPartyId(String(matchedParty.id || matchedParty.name));
-      } else if (editingTrip.partyName) {
-        setPartyMode('new');
-        setSelectedPartyId('');
+    const justOpened = !prevIsOpenRef.current;
+    const currentEditId = editingTrip ? (editingTrip.id || '__editing__') : null;
+    const editingTargetChanged = currentEditId !== prevEditingIdRef.current;
+
+    if (justOpened || editingTargetChanged) {
+      prevIsOpenRef.current = true;
+      prevEditingIdRef.current = currentEditId;
+
+      if (editingTrip) {
+        setFormData({
+          ...editingTrip,
+          vehicleType: normalizeVehicleType(editingTrip.vehicleType),
+          amount: String(editingTrip.amount || ''),
+          advance: String(editingTrip.advance || '0'),
+          balance: String(editingTrip.balance || '0'),
+          remarks: editingTrip.remarks || ''
+        });
+
+        const matchedParty = parties.find(
+          p => p.name?.trim().toLowerCase() === (editingTrip.partyName || '').trim().toLowerCase()
+        );
+        if (matchedParty) {
+          setPartyMode('existing');
+          setSelectedPartyId(String(matchedParty.id || matchedParty.name));
+        } else if (editingTrip.partyName) {
+          setPartyMode('new');
+          setSelectedPartyId('');
+        } else {
+          setPartyMode(parties.length > 0 ? 'existing' : 'new');
+          setSelectedPartyId('');
+        }
       } else {
+        setFormData({
+          lrNo: nextLrNo || generateUniqueLrId(trips),
+          partyName: '',
+          partyPhone: '',
+          vehicleNo: '',
+          vehicleType: '14 Wheeler',
+          fromCity: '',
+          toCity: '',
+          date: new Date().toISOString().split('T')[0],
+          material: '',
+          weight: '',
+          driverName: '',
+          driverMobile: '',
+          amount: '',
+          advance: '0',
+          balance: '0',
+          paymentStatus: 'Pending',
+          deliveryStatus: 'Booked',
+          remarks: ''
+        });
         setPartyMode(parties.length > 0 ? 'existing' : 'new');
         setSelectedPartyId('');
       }
-    } else {
-      setFormData({
-        lrNo: nextLrNo || generateUniqueLrId(trips),
-        partyName: '',
-        partyPhone: '',
-        vehicleNo: '',
-        vehicleType: '14 Wheeler',
-        fromCity: '',
-        toCity: '',
-        date: new Date().toISOString().split('T')[0],
-        material: '',
-        weight: '',
-        driverName: '',
-        driverMobile: '',
-        amount: '',
-        advance: '0',
-        balance: '0',
-        paymentStatus: 'Pending',
-        deliveryStatus: 'Booked',
-        remarks: ''
-      });
-      setPartyMode(parties.length > 0 ? 'existing' : 'new');
-      setSelectedPartyId('');
-    }
 
-    setCurrentStep(1);
-    setIsSuccessView(false);
-    setSavedTripSummary(null);
-    setErrors({});
-  }, [editingTrip, isOpen, nextLrNo, parties, trips]);
+      setCurrentStep(1);
+      setIsSuccessView(false);
+      setSavedTripSummary(null);
+      setErrors({});
+      setIsSaving(false);
+    }
+  }, [isOpen, editingTrip]);
 
   const sortedParties = useMemo(() => {
     return [...parties].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
@@ -299,8 +325,10 @@ export default function TripModal({
     setCurrentStep(stepId);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSaving) return;
+
     const newErrors = {};
 
     const enteredLr = (formData.lrNo || '').toUpperCase().trim();
@@ -348,18 +376,25 @@ export default function TripModal({
       payload.tollExpense = Number(editingTrip.tollExpense) || 0;
     }
 
-    onSave(payload);
-    setSavedTripSummary(payload);
-    setIsSuccessView(true);
-
     try {
-      confetti({
-        particleCount: 80,
-        spread: 60,
-        origin: { y: 0.6 }
-      });
-    } catch (confettiErr) {
-      console.warn('Confetti animation:', confettiErr);
+      setIsSaving(true);
+      const saved = await onSave(payload);
+      setSavedTripSummary(saved || payload);
+      setIsSuccessView(true);
+
+      try {
+        confetti({
+          particleCount: 80,
+          spread: 60,
+          origin: { y: 0.6 }
+        });
+      } catch (confettiErr) {
+        console.warn('Confetti animation:', confettiErr);
+      }
+    } catch (saveErr) {
+      console.error('Save failed:', saveErr);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -375,14 +410,26 @@ export default function TripModal({
             </div>
             <div>
               <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-white leading-tight">
-                {editingTrip ? 'Edit Truck Entry' : 'New Truck Entry'}
+                {isSuccessView 
+                  ? (editingTrip ? 'Entry Updated' : 'Entry Saved')
+                  : (editingTrip ? 'Edit Truck Entry' : 'New Truck Entry')}
               </h3>
-              <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Step {currentStep} of 4</p>
+              {isSuccessView ? (
+                <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Saved to Register
+                </span>
+              ) : (
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Step {currentStep} of 4</p>
+              )}
             </div>
           </div>
 
           <button
-            onClick={onClose}
+            onClick={() => {
+              setIsSuccessView(false);
+              setSavedTripSummary(null);
+              onClose();
+            }}
             className="p-1.5 text-zinc-400 hover:text-zinc-800 dark:hover:text-white rounded-lg cursor-pointer transition active:scale-95"
             title="Close"
             aria-label="Close"
@@ -393,8 +440,8 @@ export default function TripModal({
 
         {/* Celebration / Success View */}
         {isSuccessView ? (
-          <div className="p-6 sm:p-8 text-center space-y-5">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
+          <div className="p-6 sm:p-8 text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30 shadow-xs">
               <CheckCircle2 className="w-8 h-8" />
             </div>
 
@@ -403,13 +450,13 @@ export default function TripModal({
                 {editingTrip ? 'Entry Updated Successfully!' : 'Truck Entry Saved!'}
               </h3>
               <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                The trip record has been added to the register.
+                {editingTrip ? 'Trip details have been updated in the cloud register.' : 'The trip record has been added to the register.'}
               </p>
             </div>
 
             {/* Summary Card */}
             {savedTripSummary && (
-              <div className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 max-w-sm mx-auto text-left space-y-2 text-xs">
+              <div className="bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 max-w-sm mx-auto text-left space-y-2 text-xs shadow-xs">
                 <div className="flex items-center justify-between pb-1.5 border-b border-zinc-200 dark:border-zinc-800">
                   <span className="font-mono font-bold text-zinc-900 dark:text-white">
                     {savedTripSummary.lrNo || 'Bilty'}
@@ -448,6 +495,7 @@ export default function TripModal({
                 type="button"
                 onClick={() => {
                   setIsSuccessView(false);
+                  setSavedTripSummary(null);
                   onClose();
                 }}
                 className="px-6 py-2.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 font-bold rounded-xl text-sm shadow-md transition cursor-pointer active:scale-95"
@@ -460,6 +508,7 @@ export default function TripModal({
                   type="button"
                   onClick={() => {
                     setIsSuccessView(false);
+                    setSavedTripSummary(null);
                     setCurrentStep(1);
                     setFormData({
                       lrNo: generateUniqueLrId(trips),
@@ -481,6 +530,8 @@ export default function TripModal({
                       deliveryStatus: 'Booked',
                       remarks: ''
                     });
+                    setPartyMode(parties.length > 0 ? 'existing' : 'new');
+                    setSelectedPartyId('');
                     setErrors({});
                   }}
                   className="px-5 py-2.5 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 font-semibold rounded-xl text-sm transition cursor-pointer active:scale-95"
@@ -1013,10 +1064,22 @@ export default function TripModal({
                   ) : (
                     <button
                       type="submit"
-                      className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95 transition"
+                      disabled={isSaving}
+                      className={`px-5 py-2 ${
+                        isSaving ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer active:scale-95'
+                      } bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 transition`}
                     >
-                      <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                      <span>{editingTrip ? 'Save Changes' : 'Save Entry'}</span>
+                      {isSaving ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>{editingTrip ? 'Saving Changes...' : 'Saving Entry...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                          <span>{editingTrip ? 'Save Changes' : 'Save Entry'}</span>
+                        </>
+                      )}
                     </button>
                   )}
                 </div>
