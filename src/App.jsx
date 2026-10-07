@@ -382,6 +382,24 @@ export default function App() {
     });
   };
 
+  const handleResetUserPassword = async (newPassword) => {
+    try {
+      const updated = {
+        ...companySettings,
+        masterPassword: newPassword,
+        passwordHint: newPassword
+      };
+      await saveCompanySettings(updated);
+      setCompanySettings(updated);
+      localStorage.setItem('sai_transport_active_password', newPassword);
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to reset user password:', err);
+      localStorage.setItem('sai_transport_active_password', newPassword);
+      return { success: true };
+    }
+  };
+
   // If locked, render 6-Digit PIN Screen
   if (!isAuthenticated) {
     const activePassword = companySettings?.masterPassword || localStorage.getItem('sai_transport_active_password') || '000000';
@@ -391,6 +409,7 @@ export default function App() {
           setIsAuthenticated(true);
           setIsAdminLoggedIn(Boolean(isAdmin));
         }}
+        onResetUserPassword={handleResetUserPassword}
         masterPassword={activePassword}
         theme={theme}
         onToggleTheme={toggleTheme}

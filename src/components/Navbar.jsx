@@ -36,14 +36,24 @@ export default function Navbar({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16">
             
-            {/* Brand Logo & Name (Clean text only, no truck icon) */}
-            <div className="leading-tight">
-              <span className="font-extrabold text-zinc-900 dark:text-white text-base sm:text-lg tracking-tight block font-heading">
-                TRANSPORTX
-              </span>
-              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium hidden sm:block">
-                Fleet Accounts
-              </span>
+            {/* Brand Logo & Name */}
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+                <img 
+                  src="/transportx/apple-touch-icon.png" 
+                  alt="TX" 
+                  className="w-full h-full object-cover" 
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              </div>
+              <div className="leading-tight">
+                <span className="font-extrabold text-zinc-900 dark:text-white text-base sm:text-lg tracking-tight block font-heading">
+                  TRANSPORTX
+                </span>
+                <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium hidden sm:block">
+                  Fleet Accounts
+                </span>
+              </div>
             </div>
 
             {/* Desktop Navigation Tabs (Hidden on Mobile) */}

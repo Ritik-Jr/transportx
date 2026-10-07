@@ -3,6 +3,7 @@ import { Truck, ShieldCheck, Sun, Moon, AlertCircle, ArrowRight, Eye, EyeOff, Ke
 
 export default function AuthGate({ 
   onAuthenticated, 
+  onResetUserPassword,
   masterPassword = '000000', 
   theme = 'light', 
   onToggleTheme 
@@ -12,6 +13,14 @@ export default function AuthGate({
   const [isMasked, setIsMasked] = useState(true); // default masked for privacy & security
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [resetState, setResetState] = useState({
+    adminPasscode: '',
+    newPasscode: '',
+    confirmPasscode: '',
+    error: '',
+    success: ''
+  });
   const inputRefs = useRef([]);
 
   // Only retrieve saved passcode if it matches the current active password or admin password
@@ -166,6 +175,48 @@ export default function AuthGate({
     verifyPasscode(digits.join(''));
   };
 
+  const handleAdminResetSubmit = async (e) => {
+    e.preventDefault();
+    if (resetState.adminPasscode !== ADMIN_MASTER_PASSWORD) {
+      setResetState(prev => ({ ...prev, error: 'Admin Master Code is incorrect (must be 400242).' }));
+      return;
+    }
+    if (!/^\d{6}$/.test(resetState.newPasscode)) {
+      setResetState(prev => ({ ...prev, error: 'New user passcode must be exactly 6 digits.' }));
+      return;
+    }
+    if (resetState.newPasscode !== resetState.confirmPasscode) {
+      setResetState(prev => ({ ...prev, error: 'New passcode and confirmation do not match.' }));
+      return;
+    }
+    if (resetState.newPasscode === ADMIN_MASTER_PASSWORD) {
+      setResetState(prev => ({ ...prev, error: '400242 is reserved as the permanent Admin Master Passcode. Choose a different code for users.' }));
+      return;
+    }
+
+    try {
+      if (onResetUserPassword) {
+        await onResetUserPassword(resetState.newPasscode);
+      }
+      localStorage.setItem('sai_transport_active_password', resetState.newPasscode);
+      setResetState(prev => ({
+        ...prev,
+        error: '',
+        success: `User passcode reset to ${resetState.newPasscode}! Admin Master Password (400242) remains unchanged.`
+      }));
+
+      // Pre-fill digits on unlock screen so user can unlock immediately
+      const splitted = resetState.newPasscode.split('');
+      setDigits(splitted);
+
+      setTimeout(() => {
+        setIsResetModalOpen(false);
+      }, 2000);
+    } catch (err) {
+      setResetState(prev => ({ ...prev, error: 'Reset failed: ' + (err?.message || 'Error') }));
+    }
+  };
+
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-4 relative transition-colors duration-150">
       
@@ -186,8 +237,13 @@ export default function AuthGate({
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm rounded-3xl p-6 sm:p-8 text-center">
           
           {/* Logo Badge */}
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 mb-4 shadow-xs">
-            <Truck className="w-6 h-6" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-zinc-950 border border-zinc-800 mb-4 shadow-sm overflow-hidden">
+            <img 
+              src="/transportx/apple-touch-icon.png" 
+              alt="TransportX" 
+              className="w-full h-full object-cover" 
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
           </div>
 
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
@@ -293,6 +349,20 @@ export default function AuthGate({
               <span>Unlock Transport Portal</span>
               <ArrowRight className="w-4 h-4" />
             </button>
+
+            {/* Forgot Passcode Link */}
+            <div className="pt-1 text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setResetState({ adminPasscode: '', newPasscode: '', confirmPasscode: '', error: '', success: '' });
+                  setIsResetModalOpen(true);
+                }}
+                className="text-[11px] text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition cursor-pointer underline"
+              >
+                Forgot passcode? Reset with Admin Master Code
+              </button>
+            </div>
           </form>
 
           {/* Simple footer */}
@@ -303,6 +373,111 @@ export default function AuthGate({
 
         </div>
       </div>
+
+      {/* Forgot Passcode / Admin Reset Modal */}
+      {isResetModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-sm w-full p-5 shadow-2xl text-left">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800 mb-3.5">
+              <div className="flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
+                <h3 className="font-bold text-zinc-900 dark:text-white text-sm">
+                  Reset User Passcode
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsResetModalOpen(false)}
+                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 text-sm font-semibold p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-3.5 leading-relaxed">
+              If the user forgot their passcode, enter the <strong>Admin Master Passcode (400242)</strong> to set a new 6-digit user passcode. The Admin password will remain 400242.
+            </p>
+
+            <form onSubmit={handleAdminResetSubmit} className="space-y-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                  Admin Master Code
+                </label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={resetState.adminPasscode}
+                  onChange={(e) => setResetState(prev => ({ ...prev, adminPasscode: e.target.value.replace(/\D/g, ''), error: '' }))}
+                  placeholder="Enter 400242"
+                  required
+                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-mono text-xs font-bold text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                  New 6-Digit User Passcode
+                </label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={resetState.newPasscode}
+                  onChange={(e) => setResetState(prev => ({ ...prev, newPasscode: e.target.value.replace(/\D/g, ''), error: '' }))}
+                  placeholder="6 numbers"
+                  required
+                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-mono text-xs font-bold text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                  Confirm User Passcode
+                </label>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={resetState.confirmPasscode}
+                  onChange={(e) => setResetState(prev => ({ ...prev, confirmPasscode: e.target.value.replace(/\D/g, ''), error: '' }))}
+                  placeholder="Repeat 6 numbers"
+                  required
+                  className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-mono text-xs font-bold text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
+                />
+              </div>
+
+              {resetState.error && (
+                <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/40 text-rose-600 dark:text-rose-400 text-[11px] flex items-center gap-1.5">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  <span>{resetState.error}</span>
+                </div>
+              )}
+
+              {resetState.success && (
+                <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-300 text-[11px] flex items-center gap-1.5 font-medium">
+                  <span>✓ {resetState.success}</span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsResetModalOpen(false)}
+                  className="w-1/2 py-2 text-xs font-semibold rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2 text-xs font-semibold rounded-xl bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 cursor-pointer shadow-xs"
+                >
+                  Reset Passcode
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

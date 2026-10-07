@@ -59,7 +59,7 @@ export default defineConfig(({ command }) => ({
             fs.rmSync('docs', { recursive: true, force: true });
             fs.cpSync('dist', 'docs', { recursive: true });
 
-            // 5. Mirror compiled assets and route folders to repository root for GitHub Pages 'main / (root)' option
+            // 5. Mirror compiled assets, icons, manifest and route folders to repository root for GitHub Pages 'main / (root)' option
             if (fs.existsSync('dist/assets')) {
               fs.rmSync('assets', { recursive: true, force: true });
               fs.cpSync('dist/assets', 'assets', { recursive: true });
@@ -67,6 +67,24 @@ export default defineConfig(({ command }) => ({
             if (fs.existsSync('dist/404.html')) {
               fs.copyFileSync('dist/404.html', '404.html');
             }
+            const rootStaticFiles = [
+              'manifest.json',
+              'apple-touch-icon.png',
+              'apple-touch-icon-precomposed.png',
+              'android-chrome-192x192.png',
+              'android-chrome-512x512.png',
+              'favicon-32x32.png',
+              'favicon-16x16.png',
+              'favicon.svg',
+              'app-icon.png'
+            ];
+            rootStaticFiles.forEach(f => {
+              const src = path.join('dist', f);
+              if (fs.existsSync(src)) {
+                fs.copyFileSync(src, f);
+              }
+            });
+
             ROUTE_DIRS.forEach(route => {
               const rootRouteDir = route;
               if (!fs.existsSync(rootRouteDir)) {
