@@ -106,7 +106,7 @@ export default function Navbar({
         </div>
       </header>
 
-      {/* Mobile Fixed Bottom Navigation Bar (Larger touch targets and icons) */}
+      {/* Mobile Fixed Bottom Navigation Bar (No background on icon, pure theme light/dark highlight) */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 transition-colors duration-150 no-print pb-safe">
         <div className="grid grid-cols-5 h-16">
           {navItems.map((item) => {
@@ -116,17 +116,25 @@ export default function Navbar({
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`flex flex-col items-center justify-center py-1 transition cursor-pointer active:scale-95 ${
+                className={`flex flex-col items-center justify-center py-1 transition-colors cursor-pointer active:scale-95 ${
                   isActive 
-                    ? 'text-zinc-900 dark:text-white font-bold' 
+                    ? 'text-zinc-950 dark:text-white font-bold' 
                     : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
                 }`}
                 aria-label={item.label}
               >
-                <div className={`p-1 rounded-xl transition ${isActive ? 'bg-zinc-100 dark:bg-zinc-800/80' : ''}`}>
-                  <Icon className={`w-5.5 h-5.5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
+                <div className="p-1 flex items-center justify-center">
+                  <Icon className={`w-5.5 h-5.5 transition-colors ${
+                    isActive 
+                      ? 'text-zinc-950 dark:text-white stroke-[2.5]' 
+                      : 'text-zinc-400 dark:text-zinc-500 stroke-[1.8]'
+                  }`} />
                 </div>
-                <span className="text-[11px] font-semibold tracking-tight leading-none mt-0.5">{item.label}</span>
+                <span className={`text-[11px] tracking-tight leading-none mt-0.5 transition-colors ${
+                  isActive ? 'font-bold text-zinc-950 dark:text-white' : 'font-medium text-zinc-400 dark:text-zinc-500'
+                }`}>
+                  {item.label}
+                </span>
               </button>
             );
           })}
