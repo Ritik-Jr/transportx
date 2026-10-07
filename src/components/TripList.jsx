@@ -14,7 +14,8 @@ import {
   AlertCircle,
   ArrowUpDown,
   LayoutGrid,
-  List
+  List,
+  Phone
 } from 'lucide-react';
 import { exportTripsToCsv } from '../db';
 import Pagination from './Pagination';
@@ -22,12 +23,28 @@ import { formatTripWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
 
 export default function TripList({ 
   trips = [], 
+  parties = [],
   onNewTrip, 
   onEditTrip, 
   onDeleteTrip, 
   onViewBilty, 
   onRecordPayment 
 }) {
+  const cleanPhone = (phone) => {
+    if (!phone) return '';
+    return String(phone).replace(/[^\d+]/g, '');
+  };
+
+  const getPartyPhone = (trip) => {
+    if (trip.partyPhone && trip.partyPhone.trim()) return trip.partyPhone.trim();
+    if (trip.partyName) {
+      const match = parties.find(
+        p => p.name?.trim().toLowerCase() === trip.partyName.trim().toLowerCase()
+      );
+      if (match && match.phone && match.phone.trim()) return match.phone.trim();
+    }
+    return '';
+  };
   const [searchTerm, setSearchTerm] = useState(() => {
     return localStorage.getItem('sai_trips_search') || '';
   });
@@ -400,9 +417,22 @@ export default function TripList({
                         <span className="font-mono font-bold text-zinc-900 dark:text-white block text-xs">
                           {trip.vehicleNo}
                         </span>
-                        <span className="text-[10px] text-zinc-400 block mt-0.5">
-                          {trip.driverName} {trip.driverMobile && `• ${trip.driverMobile}`}
-                        </span>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[11px] text-zinc-600 dark:text-zinc-300 font-medium truncate max-w-[120px]">
+                            {trip.driverName || 'Driver'}
+                          </span>
+                          {trip.driverMobile && (
+                            <a
+                              href={`tel:${cleanPhone(trip.driverMobile)}`}
+                              onClick={(e) => e.stopPropagation()}
+                              title={`Call Driver (${trip.driverMobile})`}
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40 text-[10px] font-mono font-semibold transition active:scale-95 cursor-pointer shrink-0"
+                            >
+                              <Phone className="w-2.5 h-2.5 text-blue-600 dark:text-blue-400" />
+                              <span>Call</span>
+                            </a>
+                          )}
+                        </div>
                       </td>
 
                       {/* Route & Cargo */}
@@ -421,11 +451,21 @@ export default function TripList({
                         <span className="font-medium text-zinc-800 dark:text-zinc-200 block max-w-[170px] truncate" title={trip.partyName}>
                           {trip.partyName}
                         </span>
-                        {trip.partyPhone && (
-                          <span className="text-[10px] text-zinc-400 block mt-0.5">
-                            {trip.partyPhone}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          {getPartyPhone(trip) ? (
+                            <a
+                              href={`tel:${cleanPhone(getPartyPhone(trip))}`}
+                              onClick={(e) => e.stopPropagation()}
+                              title={`Call Party (${getPartyPhone(trip)})`}
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40 text-[10px] font-mono font-semibold transition active:scale-95 cursor-pointer shrink-0"
+                            >
+                              <Phone className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
+                              <span>Call</span>
+                            </a>
+                          ) : (
+                            <span className="text-[10px] text-zinc-400">No phone</span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Freight & Balance */}
@@ -537,20 +577,75 @@ export default function TripList({
                   </div>
                 </div>
 
-                {/* Row 2: Truck No & Route Box */}
-                <div className="p-3 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-100 dark:border-zinc-800 space-y-2">
+                {/* Row 2: Truck No, Route, Party & Driver Box */}
+                <div className="p-3.5 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-100 dark:border-zinc-800 space-y-2.5">
                   <div className="flex items-center justify-between">
                     <span className="font-mono font-bold text-zinc-900 dark:text-white text-sm sm:text-base">{trip.vehicleNo}</span>
                     <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{trip.fromCity} ➔ {trip.toCity}</span>
                   </div>
-                  <div className="text-xs text-zinc-600 dark:text-zinc-300 flex items-center justify-between pt-0.5">
-                    <span className="truncate max-w-[170px] text-zinc-800 dark:text-zinc-200 font-medium">{trip.partyName}</span>
-                    <span className="text-zinc-500 dark:text-zinc-400">{trip.material || 'General cargo'}</span>
+
+                  {trip.material && (
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                      Cargo: <span className="text-zinc-700 dark:text-zinc-300 font-medium">{trip.material}</span>
+                      {trip.weight && ` (${trip.weight})`}
+                    </div>
+                  )}
+
+                  {/* Party Row with Direct Call Button */}
+                  <div className="pt-2 border-t border-zinc-200/50 dark:border-zinc-800/80 flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[10px] text-zinc-400 uppercase font-semibold block">Party</span>
+                      <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-white truncate block" title={trip.partyName}>
+                        {trip.partyName || 'N/A'}
+                      </span>
+                      {getPartyPhone(trip) && (
+                        <span className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400 block">
+                          {getPartyPhone(trip)}
+                        </span>
+                      )}
+                    </div>
+                    {getPartyPhone(trip) ? (
+                      <a
+                        href={`tel:${cleanPhone(getPartyPhone(trip))}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40 text-xs font-bold shrink-0 transition active:scale-95 cursor-pointer shadow-2xs"
+                        title={`Call Party: ${getPartyPhone(trip)}`}
+                      >
+                        <Phone className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span>Call Party</span>
+                      </a>
+                    ) : (
+                      <span className="text-[11px] text-zinc-400 italic">No phone</span>
+                    )}
                   </div>
-                  {trip.driverName && (
-                    <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-1.5 border-t border-zinc-200/50 dark:border-zinc-800/80 flex items-center justify-between">
-                      <span>Driver: <strong className="text-zinc-700 dark:text-zinc-300">{trip.driverName}</strong></span>
-                      {trip.driverMobile && <span className="font-mono text-zinc-700 dark:text-zinc-300">{trip.driverMobile}</span>}
+
+                  {/* Driver Row with Direct Call Button */}
+                  {(trip.driverName || trip.driverMobile) && (
+                    <div className="pt-2 border-t border-zinc-200/50 dark:border-zinc-800/80 flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[10px] text-zinc-400 uppercase font-semibold block">Driver</span>
+                        <span className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-white truncate block">
+                          {trip.driverName || 'Driver'}
+                        </span>
+                        {trip.driverMobile && (
+                          <span className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400 block">
+                            {trip.driverMobile}
+                          </span>
+                        )}
+                      </div>
+                      {trip.driverMobile ? (
+                        <a
+                          href={`tel:${cleanPhone(trip.driverMobile)}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40 text-xs font-bold shrink-0 transition active:scale-95 cursor-pointer shadow-2xs"
+                          title={`Call Driver: ${trip.driverMobile}`}
+                        >
+                          <Phone className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                          <span>Call Driver</span>
+                        </a>
+                      ) : (
+                        <span className="text-[11px] text-zinc-400 italic">No phone</span>
+                      )}
                     </div>
                   )}
                 </div>

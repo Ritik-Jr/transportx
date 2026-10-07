@@ -457,6 +457,7 @@ export default function App() {
             {activeTab === 'trips' && (
               <TripList
                 trips={trips}
+                parties={parties}
                 onNewTrip={() => {
                   setEditingTrip(null);
                   setIsTripModalOpen(true);

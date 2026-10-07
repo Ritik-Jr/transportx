@@ -10,7 +10,8 @@ import {
   Download, 
   ChevronRight,
   Plus,
-  Clock
+  Clock,
+  Phone
 } from 'lucide-react';
 import { exportTripsToCsv, exportDatabaseToJson } from '../db';
 import CasinoCounter from './CasinoCounter';
@@ -25,6 +26,21 @@ export default function Dashboard({
   onNavigateTab,
   onRecordPayment 
 }) {
+  const cleanPhone = (phone) => {
+    if (!phone) return '';
+    return String(phone).replace(/[^\d+]/g, '');
+  };
+
+  const getPartyPhone = (trip) => {
+    if (trip.partyPhone && trip.partyPhone.trim()) return trip.partyPhone.trim();
+    if (trip.partyName) {
+      const match = parties.find(
+        p => p.name?.trim().toLowerCase() === trip.partyName.trim().toLowerCase()
+      );
+      if (match && match.phone && match.phone.trim()) return match.phone.trim();
+    }
+    return '';
+  };
   // Persisted period state (defaults to 'today')
   const [filterPeriod, setFilterPeriod] = useState(() => {
     return localStorage.getItem('sai_dashboard_period') || 'today';
@@ -452,7 +468,20 @@ export default function Dashboard({
                           </td>
                           <td className="py-3.5 px-3.5">
                             <span className="font-mono font-semibold text-zinc-800 dark:text-zinc-200 block">{t.vehicleNo}</span>
-                            <span className="text-[10px] text-zinc-400 mt-0.5 block">{t.driverName}</span>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <span className="text-[10px] text-zinc-400 truncate max-w-[90px]">{t.driverName || 'Driver'}</span>
+                              {t.driverMobile && (
+                                <a
+                                  href={`tel:${cleanPhone(t.driverMobile)}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  title={`Call Driver (${t.driverMobile})`}
+                                  className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40 text-[9px] font-mono font-semibold shrink-0 cursor-pointer"
+                                >
+                                  <Phone className="w-2.5 h-2.5 text-blue-600 dark:text-blue-400" />
+                                  <span>Call</span>
+                                </a>
+                              )}
+                            </div>
                           </td>
                           <td className="py-3.5 px-3.5">
                             <span className="text-zinc-800 dark:text-zinc-200 block font-medium">{t.fromCity} → {t.toCity}</span>
@@ -460,6 +489,17 @@ export default function Dashboard({
                           </td>
                           <td className="py-3.5 px-3.5">
                             <span className="text-zinc-800 dark:text-zinc-200 font-medium block truncate max-w-[150px]">{t.partyName}</span>
+                            {getPartyPhone(t) && (
+                              <a
+                                href={`tel:${cleanPhone(getPartyPhone(t))}`}
+                                onClick={(e) => e.stopPropagation()}
+                                title={`Call Party (${getPartyPhone(t)})`}
+                                className="inline-flex items-center gap-0.5 px-1.5 py-0.2 mt-0.5 rounded bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40 text-[9px] font-mono font-semibold shrink-0 cursor-pointer"
+                              >
+                                <Phone className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
+                                <span>Call</span>
+                              </a>
+                            )}
                           </td>
                           <td className="py-3.5 px-3.5 text-right">
                             <span className="font-bold text-zinc-900 dark:text-white block">{formatCurrency(t.amount)}</span>
@@ -495,15 +535,39 @@ export default function Dashboard({
                       </div>
 
                       <div className="flex items-start justify-between gap-3 pt-1 border-t border-zinc-200/60 dark:border-zinc-800">
-                        <div className="space-y-1">
+                        <div className="space-y-1 flex-1 min-w-0">
                           <div className="font-mono font-bold text-zinc-900 dark:text-white text-sm sm:text-base">
                             {t.vehicleNo}
                           </div>
                           <div className="text-sm text-zinc-800 dark:text-zinc-200 font-medium">
                             {t.fromCity} ➔ {t.toCity}
                           </div>
-                          <div className="text-xs text-zinc-600 dark:text-zinc-400 truncate max-w-[170px] font-medium">
-                            {t.partyName}
+                          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                            <span className="text-xs text-zinc-600 dark:text-zinc-400 truncate max-w-[140px] font-medium">
+                              {t.partyName}
+                            </span>
+                            {getPartyPhone(t) && (
+                              <a
+                                href={`tel:${cleanPhone(getPartyPhone(t))}`}
+                                onClick={(e) => e.stopPropagation()}
+                                title={`Call Party (${getPartyPhone(t)})`}
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40 text-[10px] font-semibold shrink-0 cursor-pointer"
+                              >
+                                <Phone className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
+                                <span>Call Party</span>
+                              </a>
+                            )}
+                            {t.driverMobile && (
+                              <a
+                                href={`tel:${cleanPhone(t.driverMobile)}`}
+                                onClick={(e) => e.stopPropagation()}
+                                title={`Call Driver (${t.driverMobile})`}
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40 text-[10px] font-semibold shrink-0 cursor-pointer"
+                              >
+                                <Phone className="w-2.5 h-2.5 text-blue-600 dark:text-blue-400" />
+                                <span>Call Driver</span>
+                              </a>
+                            )}
                           </div>
                         </div>
 
