@@ -105,9 +105,9 @@ export default function DatabaseCenter({ trips = [], parties = [], onDatabaseRes
           </div>
           <button
             onClick={exportDatabaseToJson}
-            className="mt-4 w-full py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+            className="mt-4 w-full py-2.5 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm sm:text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-4 h-4" />
             <span>Download Backup File</span>
           </button>
         </div>
@@ -134,9 +134,9 @@ export default function DatabaseCenter({ trips = [], parties = [], onDatabaseRes
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={restoring}
-              className="mt-4 w-full py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer border border-zinc-200 dark:border-zinc-700 disabled:opacity-50"
+              className="mt-4 w-full py-2.5 sm:py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-xl text-sm sm:text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer border border-zinc-200 dark:border-zinc-700 disabled:opacity-50 active:scale-95"
             >
-              <Upload className="w-3.5 h-3.5" />
+              <Upload className="w-4 h-4" />
               <span>{restoring ? 'Restoring...' : 'Select Backup File'}</span>
             </button>
           </div>
@@ -155,9 +155,9 @@ export default function DatabaseCenter({ trips = [], parties = [], onDatabaseRes
           </div>
           <button
             onClick={exportTripsToCsv}
-            className="mt-4 w-full py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer border border-emerald-200 dark:border-emerald-800/50"
+            className="mt-4 w-full py-2.5 sm:py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 rounded-xl text-sm sm:text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer border border-emerald-200 dark:border-emerald-800/50 active:scale-95"
           >
-            <FileSpreadsheet className="w-3.5 h-3.5" />
+            <FileSpreadsheet className="w-4 h-4" />
             <span>Download Excel Sheet</span>
           </button>
         </div>

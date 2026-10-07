@@ -109,9 +109,9 @@ export default function SettingsModal({
         <button
           type="button"
           onClick={onLock}
-          className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shrink-0"
+          className="px-4 py-2.5 sm:py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 rounded-xl text-sm sm:text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shrink-0 active:scale-95"
         >
-          <Lock className="w-3.5 h-3.5" />
+          <Lock className="w-4 h-4" />
           <span>Lock Portal</span>
         </button>
       </div>
@@ -123,9 +123,9 @@ export default function SettingsModal({
           <span>Change 6-Digit Passcode</span>
         </div>
 
-        <form onSubmit={handleChangePassword} className="space-y-3 max-w-md text-xs">
+        <form onSubmit={handleChangePassword} className="space-y-3.5 max-w-md text-xs">
           <div>
-            <label className="block font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
               Current Passcode
             </label>
             <input
@@ -136,13 +136,13 @@ export default function SettingsModal({
               onChange={(e) => setPasswordState({ ...passwordState, currentPassword: e.target.value.replace(/\D/g, '') })}
               placeholder="Enter current 6-digit PIN"
               required
-              className="w-full px-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-mono text-xs sm:text-sm font-bold text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+              className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-mono text-sm sm:text-xs font-bold text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white transition-colors box-border"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
                 New 6-Digit Code
               </label>
               <input
@@ -153,12 +153,12 @@ export default function SettingsModal({
                 onChange={(e) => setPasswordState({ ...passwordState, newPassword: e.target.value.replace(/\D/g, '') })}
                 placeholder="6 numbers"
                 required
-                className="w-full px-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-mono text-xs sm:text-sm font-bold text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-mono text-sm sm:text-xs font-bold text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white transition-colors box-border"
               />
             </div>
 
             <div>
-              <label className="block font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
                 Confirm Code
               </label>
               <input
@@ -169,13 +169,13 @@ export default function SettingsModal({
                 onChange={(e) => setPasswordState({ ...passwordState, confirmPassword: e.target.value.replace(/\D/g, '') })}
                 placeholder="Repeat code"
                 required
-                className="w-full px-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-mono text-xs sm:text-sm font-bold text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-mono text-sm sm:text-xs font-bold text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white transition-colors box-border"
               />
             </div>
           </div>
 
           {passwordMessage && (
-            <div className={`p-2 rounded-xl border text-xs flex items-center gap-1.5 ${
+            <div className={`p-2.5 rounded-xl border text-xs flex items-center gap-1.5 ${
               passwordMessage.type === 'success'
                 ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800/50 dark:text-emerald-300'
                 : 'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-950/40 dark:border-rose-800/50 dark:text-rose-300'
@@ -191,7 +191,7 @@ export default function SettingsModal({
 
           <button
             type="submit"
-            className="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold cursor-pointer shadow-xs"
+            className="px-4 py-2.5 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm sm:text-xs font-semibold cursor-pointer shadow-xs active:scale-95 transition"
           >
             Update Passcode
           </button>
@@ -205,10 +205,10 @@ export default function SettingsModal({
           <span>Transport Profile (Printed on Bilty)</span>
         </div>
 
-        <form onSubmit={handleSaveCompanyProfile} className="space-y-3 text-xs">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <form onSubmit={handleSaveCompanyProfile} className="space-y-3.5 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
                 Company Name *
               </label>
               <input
@@ -216,24 +216,24 @@ export default function SettingsModal({
                 value={formData.companyName}
                 onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                 required
-                className="w-full px-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-bold text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-bold text-zinc-900 dark:text-white text-sm sm:text-xs placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white transition-colors box-border"
               />
             </div>
 
             <div>
-              <label className="block font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
                 Tagline
               </label>
               <input
                 type="text"
                 value={formData.tagline}
                 onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
-                className="w-full px-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-sm sm:text-xs placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white transition-colors box-border"
               />
             </div>
 
             <div>
-              <label className="block font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
                 Phone Numbers *
               </label>
               <input
@@ -241,59 +241,59 @@ export default function SettingsModal({
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 required
-                className="w-full px-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-sm sm:text-xs placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white transition-colors box-border"
               />
             </div>
 
             <div>
-              <label className="block font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
                 GSTIN (Tax ID)
               </label>
               <input
                 type="text"
                 value={formData.gstin}
                 onChange={(e) => setFormData({ ...formData, gstin: e.target.value.toUpperCase() })}
-                className="w-full px-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-mono uppercase text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-mono uppercase text-zinc-900 dark:text-white text-sm sm:text-xs placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white transition-colors box-border"
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
                 Office Address
               </label>
               <input
                 type="text"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full px-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-sm sm:text-xs placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white transition-colors box-border"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
               Bilty Terms & Conditions
             </label>
             <textarea
-              rows="2"
+              rows="3"
               value={formData.terms}
               onChange={(e) => setFormData({ ...formData, terms: e.target.value })}
-              className="w-full px-3 py-1.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+              className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-sm sm:text-xs placeholder-zinc-400 resize-none focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white transition-colors box-border"
             />
           </div>
 
           <div className="flex items-center justify-between pt-1">
             {statusMessage ? (
               <span className="text-xs text-emerald-700 dark:text-emerald-400 flex items-center gap-1 font-semibold">
-                <CheckCircle2 className="w-3.5 h-3.5" /> {statusMessage}
+                <CheckCircle2 className="w-4 h-4" /> {statusMessage}
               </span>
             ) : <span />}
 
             <button
               type="submit"
-              className="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+              className="px-4 py-2.5 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm sm:text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
             >
-              <Save className="w-3.5 h-3.5" />
+              <Save className="w-4 h-4" />
               <span>Save Profile</span>
             </button>
           </div>
@@ -314,20 +314,20 @@ export default function SettingsModal({
           Load demo sample truck entries or reset records.
         </p>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={onResetData}
-            className="px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+            className="px-4 py-2.5 sm:py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-sm sm:text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer active:scale-95"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+            <RotateCcw className="w-4 h-4 text-amber-600 dark:text-amber-400" />
             <span>Load Demo</span>
           </button>
 
           <button
             onClick={onClearAllData}
-            className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-rose-200 dark:border-rose-800/40"
+            className="px-4 py-2.5 sm:py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 rounded-xl text-sm sm:text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-rose-200 dark:border-rose-800/40 active:scale-95"
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 className="w-4 h-4" />
             <span>Clear All</span>
           </button>
         </div>
