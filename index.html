@@ -27,5 +27,22 @@
   <body class="bg-zinc-50 text-zinc-900 min-h-screen selection:bg-zinc-900 selection:text-white">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <!-- Production fallback when served directly by GitHub Pages (main / root) -->
+    <script>
+      (function() {
+        if (!window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+          var link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = '/transportx/assets/index-BdwQfplz.css';
+          document.head.appendChild(link);
+
+          var s = document.createElement('script');
+          s.type = 'module';
+          s.crossOrigin = 'anonymous';
+          s.src = '/transportx/assets/index-B0nUDBef.js';
+          document.body.appendChild(s);
+        }
+      })();
+    </script>
   </body>
 </html>

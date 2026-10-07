@@ -27,11 +27,23 @@ export default defineConfig(({ command }) => ({
               }
               fs.writeFileSync(path.join(routeDir, 'index.html'), indexHtml, 'utf-8');
             });
-          }
-
-          // 2. Mirror complete dist output to docs/ for GitHub Pages 'main /docs' option
-          if (fs.existsSync('dist')) {
+            // 2. Mirror complete dist output to docs/ for GitHub Pages 'main /docs' option
             fs.cpSync('dist', 'docs', { recursive: true });
+
+            // 3. Mirror compiled assets and route folders to repository root for GitHub Pages 'main / (root)' option
+            if (fs.existsSync('dist/assets')) {
+              fs.cpSync('dist/assets', 'assets', { recursive: true });
+            }
+            if (fs.existsSync('dist/404.html')) {
+              fs.copyFileSync('dist/404.html', '404.html');
+            }
+            ROUTE_DIRS.forEach(route => {
+              const rootRouteDir = route;
+              if (!fs.existsSync(rootRouteDir)) {
+                fs.mkdirSync(rootRouteDir, { recursive: true });
+              }
+              fs.writeFileSync(path.join(rootRouteDir, 'index.html'), indexHtml, 'utf-8');
+            });
           }
         } catch (err) {
           console.error('Artifact copy error:', err);
