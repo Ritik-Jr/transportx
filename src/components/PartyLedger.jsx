@@ -446,7 +446,7 @@ export default function PartyLedger({
             
             <div className="flex items-center justify-between px-5 py-3.5 bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
               <div>
-                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+                <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
                   {selectedPartyForStatement.name} — Statement
                 </h3>
                 <p className="text-[11px] text-zinc-400">
@@ -690,8 +690,8 @@ export default function PartyLedger({
       {partyModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-zinc-950/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl relative my-6">
-            <div className="flex items-center justify-between px-5 py-3.5 bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
-              <h3 className="text-xs sm:text-sm font-bold text-zinc-900 dark:text-white">
+            <div className="flex items-center justify-between px-5 py-4 bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
+              <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white">
                 {editingParty ? 'Edit Party' : 'Add Transport Party'}
               </h3>
               <button

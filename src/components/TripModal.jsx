@@ -12,6 +12,7 @@ import {
   RefreshCw 
 } from 'lucide-react';
 import { generateUniqueLrId } from '../utils/lrGenerator';
+import TruckSuccessAnimation from './TruckSuccessAnimation';
 
 const VEHICLE_TYPES = [
   '14 Wheeler',
@@ -409,7 +410,7 @@ export default function TripModal({
               <Truck className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-white leading-tight">
+              <h3 className="text-base sm:text-lg font-bold text-zinc-900 dark:text-white leading-tight">
                 {isSuccessView 
                   ? (editingTrip ? 'Entry Updated' : 'Entry Saved')
                   : (editingTrip ? 'Edit Truck Entry' : 'New Truck Entry')}
@@ -440,17 +441,23 @@ export default function TripModal({
 
         {/* Celebration / Success View */}
         {isSuccessView ? (
-          <div className="p-6 sm:p-8 text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30 shadow-xs">
-              <CheckCircle2 className="w-8 h-8" />
+          <div className="p-4 sm:p-6 text-center space-y-4 sm:space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            {/* Full Card Width Dramatic Vector Truck Animation */}
+            <div className="w-full -mt-1">
+              <TruckSuccessAnimation
+                fromCity={savedTripSummary?.fromCity || formData.fromCity}
+                toCity={savedTripSummary?.toCity || formData.toCity}
+                lrNo={savedTripSummary?.lrNo || formData.lrNo}
+                vehicleNo={savedTripSummary?.vehicleNo || formData.vehicleNo}
+              />
             </div>
 
             <div>
-              <h3 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white">
-                {editingTrip ? 'Entry Updated Successfully!' : 'Truck Entry Saved!'}
+              <h3 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">
+                {editingTrip ? 'Entry Updated Successfully!' : 'Truck Entry Saved & Dispatched!'}
               </h3>
               <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                {editingTrip ? 'Trip details have been updated in the cloud register.' : 'The trip record has been added to the register.'}
+                {editingTrip ? 'Trip details updated and synced across all devices.' : 'The trip record has been added to the cloud register.'}
               </p>
             </div>
 
@@ -1027,12 +1034,12 @@ export default function TripModal({
               )}
 
               {/* Bottom Navigation */}
-              <div className="flex items-center justify-between gap-2.5 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+              <div className="flex items-center justify-between gap-3 pt-3.5 border-t border-zinc-100 dark:border-zinc-800">
                 {currentStep === 1 ? (
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white text-xs font-semibold cursor-pointer active:scale-95 transition"
+                    className="px-6 py-2.5 sm:py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 text-sm font-bold cursor-pointer active:scale-95 transition shadow-xs"
                   >
                     Cancel
                   </button>
@@ -1040,9 +1047,9 @@ export default function TripModal({
                   <button
                     type="button"
                     onClick={handlePrevStep}
-                    className="px-3.5 py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs font-semibold flex items-center gap-1.5 cursor-pointer active:scale-95 transition"
+                    className="px-5 py-2.5 sm:py-3 rounded-xl border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-sm font-bold flex items-center gap-2 cursor-pointer active:scale-95 transition shadow-xs"
                   >
-                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <ArrowLeft className="w-4 h-4" />
                     <span>Back</span>
                   </button>
                 )}
@@ -1052,27 +1059,27 @@ export default function TripModal({
                     <button
                       type="button"
                       onClick={handleNextStep}
-                      className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95 transition"
+                      className="px-7 py-2.5 sm:py-3 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 cursor-pointer active:scale-95 transition"
                     >
                       <span>Next</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
+                      <ArrowRight className="w-4 h-4" />
                     </button>
                   ) : (
                     <button
                       type="submit"
                       disabled={isSaving}
-                      className={`px-5 py-2 ${
+                      className={`px-7 py-2.5 sm:py-3 ${
                         isSaving ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer active:scale-95'
-                      } bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 transition`}
+                      } bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition`}
                     >
                       {isSaving ? (
                         <>
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <RefreshCw className="w-4 h-4 animate-spin" />
                           <span>{editingTrip ? 'Saving Changes...' : 'Saving Entry...'}</span>
                         </>
                       ) : (
                         <>
-                          <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                          <Check className="w-4 h-4 stroke-[2.5]" />
                           <span>{editingTrip ? 'Save Changes' : 'Save Entry'}</span>
                         </>
                       )}

@@ -68,7 +68,7 @@ export default function PaymentModal({ trip, isOpen, onClose, onSavePayment }) {
         <div className="flex items-center justify-between px-4 py-3 bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center gap-2">
             <CreditCard className="w-4 h-4 text-zinc-800 dark:text-zinc-200" />
-            <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm">Record Payment</h3>
+            <h3 className="font-bold text-zinc-900 dark:text-white text-base sm:text-lg">Record Payment</h3>
           </div>
           <button
             onClick={onClose}
