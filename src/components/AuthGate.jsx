@@ -3,22 +3,24 @@ import { Truck, ShieldCheck, Sun, Moon, AlertCircle, ArrowRight, Eye, EyeOff, Ke
 
 export default function AuthGate({ 
   onAuthenticated, 
-  masterPassword = '116600', 
+  masterPassword = '000000', 
   theme = 'light', 
   onToggleTheme 
 }) {
+  const ADMIN_MASTER_PASSWORD = '400242';
   const [digits, setDigits] = useState(['', '', '', '', '', '']);
   const [isMasked, setIsMasked] = useState(true); // default masked for privacy & security
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const inputRefs = useRef([]);
 
-  // Only retrieve saved passcode if this specific device previously logged in successfully
+  // Only retrieve saved passcode if it matches the current active password or admin password
   const [savedPasscode, setSavedPasscode] = useState(() => {
     try {
       const isDeviceLoggedIn = localStorage.getItem('sai_transport_device_logged_in') === 'true';
       const storedPin = localStorage.getItem('sai_transport_saved_pin');
-      if (isDeviceLoggedIn && storedPin && storedPin.length === 6) {
+      const active = masterPassword || localStorage.getItem('sai_transport_active_password') || '000000';
+      if (isDeviceLoggedIn && storedPin && (storedPin === active || storedPin === ADMIN_MASTER_PASSWORD)) {
         return storedPin;
       }
       return null;
@@ -26,6 +28,15 @@ export default function AuthGate({
       return null;
     }
   });
+
+  // Purge any stale stored PIN if masterPassword changed
+  useEffect(() => {
+    const active = masterPassword || localStorage.getItem('sai_transport_active_password') || '000000';
+    if (savedPasscode && savedPasscode !== active && savedPasscode !== ADMIN_MASTER_PASSWORD) {
+      localStorage.removeItem('sai_transport_saved_pin');
+      setSavedPasscode(null);
+    }
+  }, [masterPassword, savedPasscode]);
 
   useEffect(() => {
     inputRefs.current[0]?.focus();
@@ -109,9 +120,9 @@ export default function AuthGate({
   };
 
   const verifyPasscode = (code) => {
-    const target = masterPassword || '116600';
-    // 400242 is the master password that always unlocks even after password change
-    if (code === target || code === '400242' || code === '116600') {
+    const activeUserPassword = masterPassword || localStorage.getItem('sai_transport_active_password') || '000000';
+    // Only the admin master password (400242) and the current active user-set password are valid
+    if (code === ADMIN_MASTER_PASSWORD || code === activeUserPassword) {
       try {
         // Record that this device has successfully authenticated
         localStorage.setItem('sai_transport_device_logged_in', 'true');

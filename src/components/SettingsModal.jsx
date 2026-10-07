@@ -30,8 +30,8 @@ export default function SettingsModal({
     gstin: company.gstin || '27AAAAA0000A1Z5',
     address: company.address || 'Shop No. 12, New Transport Nagar, Nigdi, Pune, Maharashtra - 411044',
     terms: company.terms || '1. Goods carried strictly at owner\'s risk. 2. Demurrage charged after 24 hrs of arrival. 3. All disputes subject to local jurisdiction.',
-    masterPassword: company.masterPassword || '116600',
-    passwordHint: company.passwordHint || '116600'
+    masterPassword: company.masterPassword || '000000',
+    passwordHint: company.passwordHint || '000000'
   });
 
   const [passwordState, setPasswordState] = useState({
@@ -50,16 +50,17 @@ export default function SettingsModal({
     setTimeout(() => setStatusMessage(null), 3000);
   };
 
+  const ADMIN_MASTER_PASSWORD = '400242';
+
   const handleChangePassword = (e) => {
     e.preventDefault();
     setPasswordMessage(null);
 
-    const target = formData.masterPassword || '116600';
-    if (
-      passwordState.currentPassword !== target && 
-      passwordState.currentPassword !== '400242' && 
-      passwordState.currentPassword !== '116600'
-    ) {
+    const activeUserPassword = formData.masterPassword || localStorage.getItem('sai_transport_active_password') || '000000';
+    const entered = passwordState.currentPassword;
+
+    // Current password must match either the active user password OR admin master password (400242)
+    if (entered !== activeUserPassword && entered !== ADMIN_MASTER_PASSWORD) {
       setPasswordMessage({ type: 'error', text: 'Current passcode is incorrect.' });
       return;
     }
@@ -74,6 +75,11 @@ export default function SettingsModal({
       return;
     }
 
+    if (passwordState.newPassword === ADMIN_MASTER_PASSWORD) {
+      setPasswordMessage({ type: 'error', text: '400242 is reserved as the Admin Master Password. Please choose a different 6-digit passcode.' });
+      return;
+    }
+
     const updated = {
       ...formData,
       masterPassword: passwordState.newPassword,
@@ -82,11 +88,15 @@ export default function SettingsModal({
 
     setFormData(updated);
     onSaveCompany(updated);
+
+    // Save newly updated active password in localStorage so previous password expires everywhere immediately
+    localStorage.setItem('sai_transport_active_password', passwordState.newPassword);
     if (localStorage.getItem('sai_transport_saved_pin')) {
       localStorage.setItem('sai_transport_saved_pin', passwordState.newPassword);
     }
+
     setPasswordState({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    setPasswordMessage({ type: 'success', text: '6-digit passcode updated successfully!' });
+    setPasswordMessage({ type: 'success', text: '6-digit passcode updated successfully! Old passcode has been expired.' });
     setTimeout(() => setPasswordMessage(null), 4000);
   };
 

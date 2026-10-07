@@ -164,6 +164,9 @@ export default function App() {
       setTrips(res.trips || []);
       setParties(res.parties || []);
       setCompanySettings(res.settings || DEFAULT_COMPANY_SETTINGS);
+      if (res.settings?.masterPassword) {
+        localStorage.setItem('sai_transport_active_password', res.settings.masterPassword);
+      }
       setDbMeta({ source: res.source, status: res.status });
     } catch (error) {
       console.error('Failed to load database:', error);
@@ -323,6 +326,9 @@ export default function App() {
     try {
       await saveCompanySettings(newSettings);
       setCompanySettings(newSettings);
+      if (newSettings.masterPassword) {
+        localStorage.setItem('sai_transport_active_password', newSettings.masterPassword);
+      }
     } catch (error) {
       console.error('Failed to save settings to cloud:', error);
     }
@@ -351,10 +357,11 @@ export default function App() {
 
   // If locked, render 6-Digit PIN Screen
   if (!isAuthenticated) {
+    const activePassword = companySettings?.masterPassword || localStorage.getItem('sai_transport_active_password') || '000000';
     return (
       <AuthGate
         onAuthenticated={() => setIsAuthenticated(true)}
-        masterPassword={companySettings.masterPassword || '116600'}
+        masterPassword={activePassword}
         theme={theme}
         onToggleTheme={toggleTheme}
       />

@@ -41,8 +41,8 @@ export const DEFAULT_COMPANY_SETTINGS = {
   address: 'Shop No. 12, New Transport Nagar, Nigdi, Pune, Maharashtra - 411044',
   terms: '1. Goods carried at owner\'s risk. 2. Demurrage charged after 24 hrs of arrival. 3. All disputes subject to local jurisdiction.',
   currency: '₹',
-  masterPassword: '116600',
-  passwordHint: '116600',
+  masterPassword: '000000',
+  passwordHint: '000000',
 };
 
 /**
