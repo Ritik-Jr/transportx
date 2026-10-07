@@ -57,6 +57,19 @@ html.dark ::-webkit-scrollbar-thumb {
   scrollbar-width: none;
 }
 
+/* Responsive date & time input constraints */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
 /* Print styling for Bilty / LR Slip */
 @media print {
   *, *::before, *::after {
