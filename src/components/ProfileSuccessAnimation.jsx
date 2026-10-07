@@ -1,286 +1,287 @@
 import React from 'react';
-import { Building2, CheckCircle2, ShieldCheck, Sparkles, MapPin, Phone, Hash } from 'lucide-react';
+import { Building2, CheckCircle2, FileText, MapPin, Phone, Hash, Truck } from 'lucide-react';
 
 export default function ProfileSuccessAnimation({
-  companyName = 'Transport Enterprise',
+  companyName = 'Sai Transport Services',
   gstin = '',
   phone = '',
   address = ''
 }) {
   return (
     <div className="w-full relative overflow-hidden rounded-2xl bg-zinc-950 border border-zinc-800 shadow-2xl select-none text-left">
-      {/* Dynamic Keyframes */}
+      {/* Dynamic Keyframes for Transport Office & Bilty Stamp */}
       <style>{`
-        @keyframes profileBadgeDrop {
+        @keyframes stampDescent {
           0% {
             opacity: 0;
-            transform: perspective(800px) rotateX(25deg) translateY(-25px) scale(0.85);
-          }
-          60% {
-            opacity: 1;
-            transform: perspective(800px) rotateX(-6deg) translateY(4px) scale(1.03);
-          }
-          85% {
-            transform: perspective(800px) rotateX(2deg) translateY(-2px) scale(0.99);
-          }
-          100% {
-            opacity: 1;
-            transform: perspective(800px) rotateX(0deg) translateY(0) scale(1);
-          }
-        }
-
-        @keyframes orbitCW {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-
-        @keyframes orbitCCW {
-          0% { transform: rotate(360deg); }
-          100% { transform: rotate(0deg); }
-        }
-
-        @keyframes laserScan {
-          0% { transform: translateY(-70px); opacity: 0; }
-          15% { opacity: 0.9; }
-          85% { opacity: 0.9; }
-          100% { transform: translateY(70px); opacity: 0; }
-        }
-
-        @keyframes stampSlam {
-          0% {
-            opacity: 0;
-            transform: scale(2.2) rotate(-18deg);
+            transform: translateY(-45px) scale(1.25) rotate(-6deg);
           }
           65% {
             opacity: 1;
-            transform: scale(0.94) rotate(-3deg);
+            transform: translateY(2px) scale(0.96) rotate(0deg);
           }
-          85% {
-            transform: scale(1.04) rotate(-3deg);
+          80% {
+            transform: translateY(-4px) scale(1.02) rotate(0deg);
           }
           100% {
             opacity: 1;
-            transform: scale(1) rotate(-3deg);
+            transform: translateY(0) scale(1) rotate(0deg);
           }
         }
 
-        @keyframes shockwavePulse {
+        @keyframes inkSealAppear {
           0% {
-            transform: scale(0.6);
-            opacity: 0.9;
+            opacity: 0;
+            transform: scale(0.5);
+          }
+          60% {
+            opacity: 0;
+          }
+          75% {
+            opacity: 0.95;
+            transform: scale(1.08);
           }
           100% {
-            transform: scale(2.2);
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        @keyframes inkShockwave {
+          0% {
+            transform: scale(0.7);
+            opacity: 0;
+          }
+          70% {
+            opacity: 0.8;
+          }
+          100% {
+            transform: scale(1.9);
             opacity: 0;
           }
         }
 
-        @keyframes starGlint {
-          0%, 100% { opacity: 0.2; transform: scale(0.8); }
-          50% { opacity: 1; transform: scale(1.3); }
+        @keyframes truckIdling {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-1.5px); }
         }
 
-        @keyframes pulseRadio {
-          0% { transform: scale(0.7); opacity: 0.8; }
-          100% { transform: scale(2.2); opacity: 0; }
+        @keyframes depotLightPulse {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 0.95; }
         }
 
-        @keyframes gridFlow {
-          0% { background-position: 0 0; }
-          100% { background-position: 24px 24px; }
+        @keyframes roadDashMove {
+          0% { stroke-dashoffset: 0; }
+          100% { stroke-dashoffset: -40; }
         }
       `}</style>
 
-      {/* Cyber Grid Background */}
-      <div 
-        className="absolute inset-0 opacity-15 pointer-events-none"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, #10b981 1px, transparent 1px),
-            linear-gradient(to bottom, #10b981 1px, transparent 1px)
-          `,
-          backgroundSize: '24px 24px',
-          animation: 'gridFlow 8s linear infinite'
-        }}
-      />
-
-      {/* Radial Neon Ambient Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-      <div className="absolute top-1/4 right-1/4 w-48 h-48 rounded-full bg-teal-500/10 blur-2xl pointer-events-none" />
-
-      {/* HUD Header Bar */}
-      <div className="relative z-10 px-4 py-2.5 bg-zinc-900/90 border-b border-zinc-800/80 flex items-center justify-between backdrop-blur-sm">
+      {/* Header Bar */}
+      <div className="relative z-10 px-4 py-2.5 bg-zinc-900/95 border-b border-zinc-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-          <span className="w-2 h-2 rounded-full bg-emerald-500 -ml-3" />
-          <span className="font-mono text-[11px] font-semibold text-emerald-400 tracking-wider uppercase">
-            REGISTRY • COMPANY PROFILE VERIFIED
+          <span className="p-1 rounded-lg bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
+            <Building2 className="w-3.5 h-3.5" />
+          </span>
+          <span className="font-mono text-xs font-bold text-zinc-200 tracking-wide uppercase">
+            Transport Fleet Registry
           </span>
         </div>
-        <div className="flex items-center gap-1.5 font-mono text-[10px] text-zinc-400">
-          <span className="px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 font-bold text-zinc-300">
-            BILTY SYNC 100%
-          </span>
+        <div className="flex items-center gap-1.5 font-mono text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-2 py-0.5 rounded-full font-bold">
+          <CheckCircle2 className="w-3 h-3" />
+          <span>BILTY HEADER SYNCED</span>
         </div>
       </div>
 
-      {/* Visual Animation Stage */}
-      <div className="relative p-6 sm:p-8 flex flex-col items-center justify-center min-h-[220px]">
-        {/* Floating Particles / Stars */}
-        <div className="absolute top-6 left-8 text-emerald-400" style={{ animation: 'starGlint 2.4s ease-in-out infinite' }}>
-          <Sparkles className="w-4 h-4 opacity-75" />
-        </div>
-        <div className="absolute bottom-10 left-12 text-teal-400" style={{ animation: 'starGlint 3.1s ease-in-out infinite 0.7s' }}>
-          <Sparkles className="w-3 h-3 opacity-60" />
-        </div>
-        <div className="absolute top-8 right-12 text-emerald-300" style={{ animation: 'starGlint 2.8s ease-in-out infinite 1.2s' }}>
-          <Sparkles className="w-3.5 h-3.5 opacity-80" />
-        </div>
-        <div className="absolute bottom-8 right-16 text-amber-300" style={{ animation: 'starGlint 3.5s ease-in-out infinite 0.4s' }}>
-          <Sparkles className="w-4 h-4 opacity-70" />
-        </div>
+      {/* Visual Animation Stage - Transport Office & Stamp Scene */}
+      <div className="relative w-full h-56 bg-gradient-to-b from-zinc-900 via-zinc-950 to-zinc-950 flex items-center justify-center overflow-hidden">
+        
+        {/* Background Depot Yard Scene */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 500 220" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="skyDepot" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#18181b" />
+              <stop offset="100%" stopColor="#09090b" />
+            </linearGradient>
+            <linearGradient id="officeGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#27272a" />
+              <stop offset="100%" stopColor="#18181b" />
+            </linearGradient>
+            <linearGradient id="truckBody" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#059669" />
+              <stop offset="100%" stopColor="#10b981" />
+            </linearGradient>
+            <linearGradient id="goldSeal" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#059669" />
+              <stop offset="50%" stopColor="#10b981" />
+              <stop offset="100%" stopColor="#047857" />
+            </linearGradient>
+          </defs>
 
-        {/* Central 3D Corporate Seal Container */}
-        <div 
-          className="relative w-44 h-44 flex items-center justify-center"
-          style={{ animation: 'profileBadgeDrop 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
-        >
-          {/* Shockwave Rings on Impact */}
-          <div 
-            className="absolute inset-0 rounded-full border-2 border-emerald-400 pointer-events-none"
-            style={{ animation: 'shockwavePulse 1.8s ease-out infinite 0.5s' }}
-          />
-          <div 
-            className="absolute inset-2 rounded-full border border-teal-300 pointer-events-none"
-            style={{ animation: 'shockwavePulse 1.8s ease-out infinite 0.9s' }}
-          />
+          {/* Night Sky Backdrop */}
+          <rect width="500" height="220" fill="url(#skyDepot)" />
 
-          {/* SVG Multi-Layered Rotating Dials */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 176 176">
-            {/* Outer Technical Dial (Clockwise) */}
-            <g style={{ transformOrigin: '88px 88px', animation: 'orbitCW 26s linear infinite' }}>
-              <circle cx="88" cy="88" r="82" fill="none" stroke="#059669" strokeWidth="1" strokeDasharray="4 8" opacity="0.5" />
-              <circle cx="88" cy="88" r="77" fill="none" stroke="#10b981" strokeWidth="1.5" strokeDasharray="20 6" opacity="0.7" />
-              {/* Corner Tick Nodes */}
-              <circle cx="88" cy="11" r="2.5" fill="#34d399" />
-              <circle cx="88" cy="165" r="2.5" fill="#34d399" />
-              <circle cx="11" cy="88" r="2.5" fill="#34d399" />
-              <circle cx="165" cy="88" r="2.5" fill="#34d399" />
-            </g>
+          {/* Distant Logistics Warehouses Silhouette */}
+          <path d="M0 130 L40 130 L40 110 L110 110 L110 130 L180 130 L180 100 L240 100 L240 130 L500 130 L500 220 L0 220 Z" fill="#18181b" opacity="0.6" />
 
-            {/* Inner Precision Dial (Counter-Clockwise) */}
-            <g style={{ transformOrigin: '88px 88px', animation: 'orbitCCW 18s linear infinite' }}>
-              <circle cx="88" cy="88" r="68" fill="none" stroke="#0d9488" strokeWidth="1" strokeDasharray="6 4" opacity="0.6" />
-              <circle cx="88" cy="88" r="62" fill="none" stroke="#2dd4bf" strokeWidth="1.5" strokeDasharray="14 10" opacity="0.75" />
-              <circle cx="88" cy="26" r="2" fill="#5eead4" />
-              <circle cx="88" cy="150" r="2" fill="#5eead4" />
-              <circle cx="26" cy="88" r="2" fill="#5eead4" />
-              <circle cx="150" cy="88" r="2" fill="#5eead4" />
-            </g>
+          {/* Transport Fleet HQ Office (Right Side) */}
+          <g transform="translate(320, 45)">
+            {/* Main Building */}
+            <rect x="0" y="20" width="150" height="110" rx="3" fill="url(#officeGrad)" stroke="#3f3f46" strokeWidth="1.5" />
+            
+            {/* Roof Billboard: "TRANSPORT FLEET HQ" */}
+            <rect x="15" y="0" width="120" height="18" rx="2" fill="#09090b" stroke="#10b981" strokeWidth="1.2" />
+            <text x="75" y="12" fill="#34d399" fontSize="8" fontFamily="monospace" fontWeight="bold" textAnchor="middle" letterSpacing="1">
+              FLEET LOGISTICS HQ
+            </text>
 
-            {/* Inner Seal Radial Background */}
-            <circle cx="88" cy="88" r="54" fill="#064e3b" fillOpacity="0.45" stroke="#059669" strokeWidth="2" />
-          </svg>
-
-          {/* Central Fleet & Building Emblem */}
-          <div className="relative z-10 w-28 h-28 rounded-full bg-gradient-to-b from-zinc-900 to-zinc-950 border-2 border-emerald-500/80 shadow-[0_0_30px_rgba(16,185,129,0.35)] flex flex-col items-center justify-center overflow-hidden">
-            {/* Laser Scanning Line */}
-            <div 
-              className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399] z-20 pointer-events-none"
-              style={{ animation: 'laserScan 2.2s ease-in-out infinite' }}
-            />
-
-            {/* Radio / Satellite Wave pulses from top */}
-            <div 
-              className="absolute top-3 w-4 h-4 rounded-full border border-emerald-400/80 pointer-events-none"
-              style={{ animation: 'pulseRadio 2s ease-out infinite' }}
-            />
-
-            {/* Vector Building + Fleet Silhouette */}
-            <svg className="w-16 h-16 text-emerald-400" viewBox="0 0 64 64" fill="none">
-              <defs>
-                <linearGradient id="bldgGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#34d399" />
-                  <stop offset="100%" stopColor="#059669" />
-                </linearGradient>
-                <linearGradient id="truckGrad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#6ee7b7" />
-                  <stop offset="100%" stopColor="#10b981" />
-                </linearGradient>
-              </defs>
-
-              {/* Antenna on central tower */}
-              <line x1="32" y1="6" x2="32" y2="14" stroke="#a7f3d0" strokeWidth="2" strokeLinecap="round" />
-              <circle cx="32" cy="5" r="2" fill="#34d399" />
-
-              {/* High-Rise Enterprise Transport HQ */}
-              <rect x="22" y="14" width="20" height="34" rx="2" fill="url(#bldgGrad)" fillOpacity="0.85" stroke="#10b981" strokeWidth="1.5" />
-              {/* Windows Grid */}
-              <rect x="25" y="18" width="3" height="3" rx="0.5" fill="#ecfdf5" />
-              <rect x="30" y="18" width="4" height="3" rx="0.5" fill="#ecfdf5" />
-              <rect x="36" y="18" width="3" height="3" rx="0.5" fill="#ecfdf5" />
-              <rect x="25" y="24" width="3" height="3" rx="0.5" fill="#ecfdf5" />
-              <rect x="30" y="24" width="4" height="3" rx="0.5" fill="#ecfdf5" />
-              <rect x="36" y="24" width="3" height="3" rx="0.5" fill="#ecfdf5" />
-              <rect x="25" y="30" width="3" height="3" rx="0.5" fill="#ecfdf5" />
-              <rect x="30" y="30" width="4" height="3" rx="0.5" fill="#ecfdf5" />
-              <rect x="36" y="30" width="3" height="3" rx="0.5" fill="#ecfdf5" />
-
-              {/* Side Wings */}
-              <rect x="12" y="26" width="10" height="22" rx="1.5" fill="#047857" fillOpacity="0.9" stroke="#059669" strokeWidth="1.2" />
-              <rect x="15" y="30" width="4" height="2.5" fill="#a7f3d0" />
-              <rect x="15" y="35" width="4" height="2.5" fill="#a7f3d0" />
-
-              <rect x="42" y="24" width="10" height="24" rx="1.5" fill="#047857" fillOpacity="0.9" stroke="#059669" strokeWidth="1.2" />
-              <rect x="45" y="28" width="4" height="2.5" fill="#a7f3d0" />
-              <rect x="45" y="33" width="4" height="2.5" fill="#a7f3d0" />
-
-              {/* Transport Fleet Truck at base dock */}
-              <g transform="translate(10, 43)">
-                {/* Truck Cargo Body */}
-                <rect x="2" y="2" width="24" height="11" rx="1" fill="url(#truckGrad)" stroke="#047857" strokeWidth="0.8" />
-                {/* Cabin */}
-                <path d="M26 6 L33 6 L37 10 L37 13 L26 13 Z" fill="#34d399" stroke="#047857" strokeWidth="0.8" />
-                <path d="M28 7.5 L32 7.5 L34.5 10 L28 10 Z" fill="#ecfdf5" />
-                {/* Wheels */}
-                <circle cx="8" cy="14" r="2.5" fill="#0f172a" stroke="#6ee7b7" strokeWidth="1" />
-                <circle cx="21" cy="14" r="2.5" fill="#0f172a" stroke="#6ee7b7" strokeWidth="1" />
-                <circle cx="32" cy="14" r="2.5" fill="#0f172a" stroke="#6ee7b7" strokeWidth="1" />
+            {/* Lit Office Windows */}
+            {[0, 1, 2].map(row => (
+              <g key={row} transform={`translate(15, ${32 + row * 24})`}>
+                <rect x="0" y="0" width="22" height="14" rx="1.5" fill="#fef08a" opacity="0.75" />
+                <rect x="30" y="0" width="22" height="14" rx="1.5" fill="#fef08a" opacity="0.6" />
+                <rect x="60" y="0" width="22" height="14" rx="1.5" fill="#6ee7b7" opacity="0.8" />
+                <rect x="90" y="0" width="22" height="14" rx="1.5" fill="#fef08a" opacity="0.7" />
               </g>
-            </svg>
-          </div>
+            ))}
 
-          {/* Dramatic "SEALED & SAVED" Stamp Overlay */}
-          <div 
-            className="absolute -bottom-2 -right-3 z-30 px-3 py-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-lg border-2 border-white/80 shadow-[0_4px_16px_rgba(16,185,129,0.6)] font-mono text-[10px] sm:text-[11px] font-black uppercase tracking-wider flex items-center gap-1"
-            style={{ animation: 'stampSlam 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 0.35s' }}
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>SEALED</span>
-          </div>
-        </div>
+            {/* Warehouse Bay Entrance with illuminated sign */}
+            <rect x="25" y="98" width="55" height="32" rx="1" fill="#09090b" stroke="#52525b" strokeWidth="1" />
+            <text x="52" y="116" fill="#a1a1aa" fontSize="6.5" fontFamily="monospace" textAnchor="middle">BAY 01</text>
+          </g>
 
-        {/* Company Header Typography */}
-        <div className="mt-5 text-center space-y-1">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-semibold shadow-xs">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Company Profile Successfully Synced</span>
-          </div>
+          {/* Transport Asphalt Ground */}
+          <rect x="0" y="150" width="500" height="70" fill="#18181b" />
+          <line x1="0" y1="150" x2="500" y2="150" stroke="#3f3f46" strokeWidth="2" />
+          {/* Yellow Road Divider Markings */}
+          <line 
+            x1="0" y1="185" x2="500" y2="185" 
+            stroke="#eab308" strokeWidth="2" strokeDasharray="18 14" 
+            style={{ animation: 'roadDashMove 3s linear infinite' }} 
+          />
 
-          <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight pt-1">
-            {companyName || 'Sai Transport Company'}
-          </h3>
-          <p className="text-[11px] sm:text-xs text-zinc-400 max-w-sm mx-auto">
-            Printed automatically on all transport bilties, receipts, invoices, and cloud reports.
-          </p>
+          {/* Parked Transport Truck (Left Side) */}
+          <g transform="translate(30, 95)" style={{ animation: 'truckIdling 2.5s ease-in-out infinite' }}>
+            {/* Headlight beam */}
+            <polygon points="125,48 240,30 240,65 125,56" fill="#fef08a" opacity="0.12" style={{ animation: 'depotLightPulse 2s infinite' }} />
+
+            {/* Heavy Container Body */}
+            <rect x="0" y="10" width="85" height="42" rx="2" fill="url(#truckBody)" stroke="#047857" strokeWidth="1.2" />
+            {/* Cargo Ribs */}
+            {[18, 36, 54, 72].map(x => (
+              <line key={x} x1={x} y1="12" x2={x} y2="50" stroke="#047857" strokeWidth="1.5" />
+            ))}
+            {/* Cabin */}
+            <path d="M85 24 L108 24 L122 36 L124 52 L85 52 Z" fill="#065f46" stroke="#047857" strokeWidth="1.2" />
+            {/* Windshield */}
+            <path d="M92 27 L106 27 L117 36 L92 36 Z" fill="#e0f2fe" opacity="0.9" />
+            {/* Headlight */}
+            <rect x="122" y="47" width="3" height="4" rx="1" fill="#fef08a" />
+            {/* Wheels with Hubs */}
+            <circle cx="20" cy="54" r="8" fill="#09090b" stroke="#71717a" strokeWidth="2" />
+            <circle cx="20" cy="54" r="3.5" fill="#27272a" />
+            <circle cx="42" cy="54" r="8" fill="#09090b" stroke="#71717a" strokeWidth="2" />
+            <circle cx="42" cy="54" r="3.5" fill="#27272a" />
+            <circle cx="106" cy="54" r="8" fill="#09090b" stroke="#71717a" strokeWidth="2" />
+            <circle cx="106" cy="54" r="3.5" fill="#27272a" />
+          </g>
+
+          {/* Central Clipboard / Consignment Document Platform */}
+          <g transform="translate(180, 20)">
+            {/* Clipboard Backing */}
+            <rect x="0" y="0" width="140" height="155" rx="6" fill="#27272a" stroke="#52525b" strokeWidth="1.5" filter="drop-shadow(0 8px 16px rgba(0,0,0,0.6))" />
+            {/* Clip at top */}
+            <rect x="45" y="-6" width="50" height="12" rx="3" fill="#71717a" stroke="#a1a1aa" strokeWidth="1" />
+            <circle cx="70" cy="0" r="3" fill="#18181b" />
+
+            {/* Official Transport Bilty Sheet (Paper) */}
+            <rect x="8" y="10" width="124" height="136" rx="3" fill="#f8fafc" />
+
+            {/* Document Header lines */}
+            <rect x="16" y="18" width="60" height="4" rx="1" fill="#0f172a" />
+            <rect x="16" y="25" width="45" height="2.5" rx="0.5" fill="#64748b" />
+            <line x1="16" y1="32" x2="124" y2="32" stroke="#cbd5e1" strokeWidth="1" />
+
+            {/* Form Table Grid lines representing Consignment details */}
+            <rect x="16" y="37" width="108" height="22" fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="0.8" />
+            <line x1="48" y1="37" x2="48" y2="59" stroke="#cbd5e1" strokeWidth="0.8" />
+            <line x1="84" y1="37" x2="84" y2="59" stroke="#cbd5e1" strokeWidth="0.8" />
+            <rect x="20" y="42" width="22" height="2.5" rx="0.5" fill="#94a3b8" />
+            <rect x="52" y="42" width="26" height="2.5" rx="0.5" fill="#94a3b8" />
+            <rect x="88" y="42" width="22" height="2.5" rx="0.5" fill="#94a3b8" />
+
+            <line x1="16" y1="65" x2="124" y2="65" stroke="#e2e8f0" strokeWidth="1" />
+            <line x1="16" y1="72" x2="105" y2="72" stroke="#e2e8f0" strokeWidth="1" />
+            <line x1="16" y1="79" x2="115" y2="79" stroke="#e2e8f0" strokeWidth="1" />
+
+            {/* Shockwave ripple from Stamp impact */}
+            <circle 
+              cx="70" cy="105" r="32" 
+              fill="none" stroke="#10b981" strokeWidth="2.5" 
+              style={{ animation: 'inkShockwave 1.6s ease-out infinite 0.55s' }} 
+            />
+
+            {/* Official Transport Seal (Imprinted Ink Seal on Paper) */}
+            <g transform="translate(70, 105)" style={{ animation: 'inkSealAppear 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}>
+              {/* Outer Seal Circle */}
+              <circle cx="0" cy="0" r="28" fill="none" stroke="#059669" strokeWidth="2" strokeDasharray="3 2" />
+              <circle cx="0" cy="0" r="25" fill="#ecfdf5" stroke="#059669" strokeWidth="1.5" />
+              
+              {/* Star Ornaments */}
+              <text x="0" y="-17" fill="#047857" fontSize="5" fontWeight="bold" textAnchor="middle">★ TRANSPORT SEAL ★</text>
+              <text x="0" y="21" fill="#047857" fontSize="4.5" fontWeight="bold" textAnchor="middle">REGISTERED & VERIFIED</text>
+              
+              {/* Center Truck Silhouette inside Seal */}
+              <g transform="translate(-12, -7)">
+                <rect x="0" y="2" width="16" height="8" rx="0.5" fill="#059669" />
+                <path d="M16 4 L21 4 L24 7 L24 10 L16 10 Z" fill="#047857" />
+                <circle cx="4" cy="11" r="2" fill="#064e3b" />
+                <circle cx="12" cy="11" r="2" fill="#064e3b" />
+                <circle cx="20" cy="11" r="2" fill="#064e3b" />
+              </g>
+
+              {/* Bold Checkmark across stamp */}
+              <circle cx="15" cy="-14" r="6" fill="#10b981" />
+              <path d="M12.5 -14 L14.5 -12 L17.5 -16" fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </g>
+
+            {/* Stamping Tool (Lifting up after stamp impact) */}
+            <g transform="translate(70, 72)" style={{ animation: 'stampDescent 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' }}>
+              {/* Brass / Steel Stamp Handle */}
+              <path d="M-6 -38 L6 -38 L8 -22 L-8 -22 Z" fill="#d97706" stroke="#b45309" strokeWidth="1" />
+              <circle cx="0" cy="-42" r="7" fill="#b45309" />
+              {/* Stamp Base Mount */}
+              <rect x="-18" y="-22" width="36" height="8" rx="2" fill="#3f3f46" stroke="#18181b" strokeWidth="1" />
+              <rect x="-22" y="-14" width="44" height="6" rx="1.5" fill="#059669" />
+            </g>
+          </g>
+        </svg>
+
+        {/* Floating Seal Confirmation Banner on Scene */}
+        <div 
+          className="absolute bottom-3 px-3.5 py-1 rounded-full bg-zinc-900/90 border border-emerald-500/50 backdrop-blur-md shadow-lg flex items-center gap-2 text-xs font-semibold text-emerald-300"
+          style={{ animation: 'stampDescent 0.6s ease-out forwards 0.3s' }}
+        >
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>Official Transport Seal Applied & Synced</span>
         </div>
       </div>
 
-      {/* Profile Details Snapshot Card */}
-      <div className="p-3.5 sm:p-4 bg-zinc-900/80 border-t border-zinc-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+      {/* Company Name & Bilty Readout */}
+      <div className="p-4 sm:p-5 bg-zinc-950 text-center space-y-1 border-t border-zinc-800/80">
+        <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+          {companyName || 'Sai Transport Company'}
+        </h3>
+        <p className="text-xs text-zinc-400 max-w-md mx-auto">
+          Company details logged successfully. This header will be printed on all transport bilties, consignment notes, and invoices.
+        </p>
+      </div>
+
+      {/* Snapshot Cards for Transport Credentials */}
+      <div className="p-3 sm:p-4 bg-zinc-900/90 border-t border-zinc-800 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
         {gstin && (
-          <div className="p-2.5 bg-zinc-950/70 rounded-xl border border-zinc-800 flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-emerald-950/60 text-emerald-400 border border-emerald-800/40 shrink-0">
+          <div className="p-2.5 bg-zinc-950/80 rounded-xl border border-zinc-800/80 flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-zinc-800 text-emerald-400 shrink-0">
               <Hash className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0 flex-1">
@@ -291,20 +292,20 @@ export default function ProfileSuccessAnimation({
         )}
 
         {phone && (
-          <div className="p-2.5 bg-zinc-950/70 rounded-xl border border-zinc-800 flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-teal-950/60 text-teal-400 border border-teal-800/40 shrink-0">
+          <div className="p-2.5 bg-zinc-950/80 rounded-xl border border-zinc-800/80 flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-zinc-800 text-emerald-400 shrink-0">
               <Phone className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0 flex-1">
-              <span className="text-[10px] text-zinc-400 uppercase font-semibold block">Contact</span>
+              <span className="text-[10px] text-zinc-400 uppercase font-semibold block">Fleet Helpline</span>
               <span className="font-mono font-bold text-zinc-200 truncate block text-[11px]">{phone}</span>
             </div>
           </div>
         )}
 
         {address && (
-          <div className="p-2.5 bg-zinc-950/70 rounded-xl border border-zinc-800 flex items-center gap-2 sm:col-span-1">
-            <div className="p-1.5 rounded-lg bg-blue-950/60 text-blue-400 border border-blue-800/40 shrink-0">
+          <div className="p-2.5 bg-zinc-950/80 rounded-xl border border-zinc-800/80 flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-zinc-800 text-emerald-400 shrink-0">
               <MapPin className="w-3.5 h-3.5" />
             </div>
             <div className="min-w-0 flex-1">
