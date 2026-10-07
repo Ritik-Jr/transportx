@@ -1,12 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   db, 
-  seedDatabaseIfEmpty, 
-  backupToLocalStorage, 
-  INITIAL_TRIPS, 
-  INITIAL_PARTIES, 
+  fetchAppData, 
+  saveTripRecord, 
+  deleteTripRecord, 
+  savePartyRecord, 
+  deletePartyRecord, 
+  saveCompanySettings, 
+  clearAllDatabaseData, 
+  resetDemoDatabaseData, 
   DEFAULT_COMPANY_SETTINGS 
 } from './db';
+import { isSupabaseEnabled } from './utils/supabase';
 import AuthGate from './components/AuthGate';
 import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';
@@ -164,6 +169,10 @@ export default function App() {
   const [parties, setParties] = useState([]);
   const [companySettings, setCompanySettings] = useState(DEFAULT_COMPANY_SETTINGS);
   const [loading, setLoading] = useState(true);
+  const [dbMeta, setDbMeta] = useState({ 
+    source: isSupabaseEnabled() ? 'supabase' : 'localhost_indexeddb', 
+    status: isSupabaseEnabled() ? 'connecting' : 'local' 
+  });
 
   // Modals (all closed by default)
   const [isTripModalOpen, setIsTripModalOpen] = useState(false);
@@ -174,23 +183,14 @@ export default function App() {
   // Load Database Data
   const loadDatabaseData = useCallback(async () => {
     try {
-      await seedDatabaseIfEmpty();
-      
       // Smooth initial loading delay to show skeleton cards
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 400));
       
-      const loadedTrips = await db.trips.toArray();
-      const loadedParties = await db.parties.toArray();
-      const loadedSettings = await db.settings.toArray();
-
-      const settingsMap = { ...DEFAULT_COMPANY_SETTINGS };
-      loadedSettings.forEach(item => {
-        settingsMap[item.key] = item.value;
-      });
-
-      setTrips(loadedTrips);
-      setParties(loadedParties);
-      setCompanySettings(settingsMap);
+      const res = await fetchAppData();
+      setTrips(res.trips || []);
+      setParties(res.parties || []);
+      setCompanySettings(res.settings || DEFAULT_COMPANY_SETTINGS);
+      setDbMeta({ source: res.source, status: res.status });
     } catch (error) {
       console.error('Failed to load database:', error);
     } finally {
@@ -227,21 +227,11 @@ export default function App() {
   // Trip Handlers
   const handleSaveTrip = async (tripData) => {
     try {
+      const saved = await saveTripRecord(tripData);
       if (tripData.id) {
-        const updated = {
-          ...tripData,
-          updatedAt: new Date().toISOString()
-        };
-        await db.trips.put(updated);
-        setTrips(prev => prev.map(t => (t.id === tripData.id ? updated : t)));
+        setTrips(prev => prev.map(t => (t.id === tripData.id ? saved : t)));
       } else {
-        const newTrip = {
-          ...tripData,
-          createdAt: new Date().toISOString()
-        };
-        const id = await db.trips.add(newTrip);
-        const created = { ...newTrip, id };
-        setTrips(prev => [created, ...prev]);
+        setTrips(prev => [saved, ...prev]);
       }
 
       if (tripData.partyName) {
@@ -257,12 +247,10 @@ export default function App() {
             gstin: '',
             createdAt: new Date().toISOString()
           };
-          const pId = await db.parties.add(newParty);
-          setParties(prev => [...prev, { ...newParty, id: pId }]);
+          const savedParty = await savePartyRecord(newParty);
+          setParties(prev => [...prev, savedParty]);
         }
       }
-
-      await backupToLocalStorage();
     } catch (error) {
       console.error('Failed to save trip:', error);
       alert('Error saving trip: ' + error.message);
@@ -285,9 +273,8 @@ export default function App() {
       isDestructive: true,
       onConfirm: async () => {
         try {
-          await db.trips.delete(id);
+          await deleteTripRecord(id);
           setTrips(prev => prev.filter(t => t.id !== id));
-          await backupToLocalStorage();
         } catch (error) {
           console.error('Failed to delete trip:', error);
         }
@@ -297,9 +284,8 @@ export default function App() {
 
   const handleRecordPayment = async (updatedTrip) => {
     try {
-      await db.trips.put(updatedTrip);
-      setTrips(prev => prev.map(t => (t.id === updatedTrip.id ? updatedTrip : t)));
-      await backupToLocalStorage();
+      const saved = await saveTripRecord(updatedTrip);
+      setTrips(prev => prev.map(t => (t.id === updatedTrip.id ? saved : t)));
     } catch (error) {
       console.error('Failed to update payment:', error);
     }
@@ -308,18 +294,12 @@ export default function App() {
   // Party Handlers
   const handleSaveParty = async (partyData) => {
     try {
+      const saved = await savePartyRecord(partyData);
       if (partyData.id) {
-        await db.parties.put(partyData);
-        setParties(prev => prev.map(p => (p.id === partyData.id ? partyData : p)));
+        setParties(prev => prev.map(p => (p.id === partyData.id ? saved : p)));
       } else {
-        const newParty = {
-          ...partyData,
-          createdAt: new Date().toISOString()
-        };
-        const id = await db.parties.add(newParty);
-        setParties(prev => [...prev, { ...newParty, id }]);
+        setParties(prev => [...prev, saved]);
       }
-      await backupToLocalStorage();
     } catch (error) {
       console.error('Failed to save party:', error);
     }
@@ -339,9 +319,8 @@ export default function App() {
       isDestructive: true,
       onConfirm: async () => {
         try {
-          await db.parties.delete(id);
+          await deletePartyRecord(id);
           setParties(prev => prev.filter(p => p.id !== id));
-          await backupToLocalStorage();
         } catch (error) {
           console.error('Failed to delete party:', error);
         }
@@ -352,11 +331,8 @@ export default function App() {
   // Settings Handlers
   const handleSaveCompany = async (newSettings) => {
     try {
-      for (const [key, value] of Object.entries(newSettings)) {
-        await db.settings.put({ key, value });
-      }
+      await saveCompanySettings(newSettings);
       setCompanySettings(newSettings);
-      await backupToLocalStorage();
     } catch (error) {
       console.error('Failed to save settings:', error);
     }
@@ -372,8 +348,7 @@ export default function App() {
       isDestructive: false,
       onConfirm: async () => {
         try {
-          await db.trips.bulkAdd(INITIAL_TRIPS);
-          await db.parties.bulkAdd(INITIAL_PARTIES);
+          await resetDemoDatabaseData();
           await loadDatabaseData();
         } catch (error) {
           console.error('Failed to reset demo data:', error);
@@ -386,17 +361,15 @@ export default function App() {
     setConfirmModal({
       isOpen: true,
       title: 'Wipe All Data',
-      message: 'Are you sure you want to wipe all records? This permanently clears all trips and parties from the local database.',
+      message: 'Are you sure you want to wipe all records? This permanently clears all trips and parties.',
       itemDetails: `${trips.length} Trips • ${parties.length} Parties`,
       confirmLabel: 'Wipe Everything',
       isDestructive: true,
       onConfirm: async () => {
         try {
-          await db.trips.clear();
-          await db.parties.clear();
+          await clearAllDatabaseData();
           setTrips([]);
           setParties([]);
-          await backupToLocalStorage();
         } catch (error) {
           console.error('Failed to clear database:', error);
         }
@@ -500,6 +473,7 @@ export default function App() {
                 trips={trips}
                 parties={parties}
                 onDatabaseRestored={loadDatabaseData}
+                dbMeta={dbMeta}
               />
             )}
           </>

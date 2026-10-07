@@ -1,4 +1,12 @@
 import Dexie from 'dexie';
+import { 
+  supabase, 
+  isSupabaseEnabled, 
+  mapTripFromSupabase, 
+  mapTripToSupabase, 
+  mapPartyFromSupabase, 
+  mapPartyToSupabase 
+} from '../utils/supabase';
 
 // Initialize Dexie IndexedDB
 export const db = new Dexie('SaiTransportDB');
@@ -251,6 +259,250 @@ export async function backupToLocalStorage() {
     return false;
   }
 }
+
+/**
+ * Unified data fetcher:
+ * - Production: Queries Supabase. Automatically caches into IndexedDB for offline resilience.
+ * - Localhost: Queries local IndexedDB (zero external network calls for dev).
+ */
+export async function fetchAppData() {
+  if (isSupabaseEnabled()) {
+    try {
+      const [tripsRes, partiesRes, settingsRes] = await Promise.all([
+        supabase.from('trips').select('*').order('id', { ascending: false }),
+        supabase.from('parties').select('*').order('id', { ascending: false }),
+        supabase.from('settings').select('*')
+      ]);
+
+      const tripsError = tripsRes.error;
+      const partiesError = partiesRes.error;
+      const settingsError = settingsRes.error;
+
+      if (!tripsError && !partiesError) {
+        let loadedTrips = (tripsRes.data || []).map(mapTripFromSupabase);
+        let loadedParties = (partiesRes.data || []).map(mapPartyFromSupabase);
+
+        // If Supabase is empty, initialize with initial demo records
+        if (loadedTrips.length === 0 && loadedParties.length === 0) {
+          try {
+            const partyInserts = INITIAL_PARTIES.map(mapPartyToSupabase);
+            const { data: pData } = await supabase.from('parties').insert(partyInserts).select();
+            if (pData) loadedParties = pData.map(mapPartyFromSupabase);
+
+            const tripInserts = INITIAL_TRIPS.map(mapTripToSupabase);
+            const { data: tData } = await supabase.from('trips').insert(tripInserts).select();
+            if (tData) loadedTrips = tData.map(mapTripFromSupabase);
+
+            const settingsInserts = Object.entries(DEFAULT_COMPANY_SETTINGS).map(([key, value]) => ({ 
+              key, 
+              value: typeof value === 'object' ? JSON.stringify(value) : String(value) 
+            }));
+            await supabase.from('settings').upsert(settingsInserts);
+          } catch (seedErr) {
+            console.warn('Supabase auto-seed notice:', seedErr);
+          }
+        }
+
+        const settingsMap = { ...DEFAULT_COMPANY_SETTINGS };
+        if (!settingsError && settingsRes.data) {
+          settingsRes.data.forEach(item => {
+            settingsMap[item.key] = item.value;
+          });
+        }
+
+        // Cache to local IndexedDB & localStorage for offline resilience
+        try {
+          await db.trips.clear();
+          if (loadedTrips.length > 0) await db.trips.bulkAdd(loadedTrips);
+          await db.parties.clear();
+          if (loadedParties.length > 0) await db.parties.bulkAdd(loadedParties);
+          await db.settings.clear();
+          for (const [key, value] of Object.entries(settingsMap)) {
+            await db.settings.put({ key, value });
+          }
+          await backupToLocalStorage();
+        } catch (_) {}
+
+        return {
+          trips: loadedTrips,
+          parties: loadedParties,
+          settings: settingsMap,
+          source: 'supabase',
+          status: 'online'
+        };
+      } else {
+        console.warn('Supabase schema notice (fallback to local DB):', tripsError?.message || partiesError?.message);
+      }
+    } catch (err) {
+      console.warn('Supabase connection notice (fallback to local DB):', err);
+    }
+  }
+
+  // Localhost (or offline fallback)
+  await seedDatabaseIfEmpty();
+  const loadedTrips = await db.trips.toArray();
+  const loadedParties = await db.parties.toArray();
+  const loadedSettings = await db.settings.toArray();
+
+  const settingsMap = { ...DEFAULT_COMPANY_SETTINGS };
+  loadedSettings.forEach(item => {
+    settingsMap[item.key] = item.value;
+  });
+
+  return {
+    trips: loadedTrips,
+    parties: loadedParties,
+    settings: settingsMap,
+    source: isSupabaseEnabled() ? 'fallback_local' : 'localhost_indexeddb',
+    status: isSupabaseEnabled() ? 'needs_schema' : 'local'
+  };
+}
+
+export async function saveTripRecord(tripData) {
+  let savedTrip = { ...tripData };
+  if (isSupabaseEnabled()) {
+    try {
+      if (tripData.id) {
+        const payload = mapTripToSupabase(tripData);
+        const { data, error } = await supabase.from('trips').update(payload).eq('id', tripData.id).select().single();
+        if (!error && data) {
+          savedTrip = mapTripFromSupabase(data);
+        }
+      } else {
+        const payload = mapTripToSupabase(tripData);
+        delete payload.id;
+        const { data, error } = await supabase.from('trips').insert([payload]).select().single();
+        if (!error && data) {
+          savedTrip = mapTripFromSupabase(data);
+        }
+      }
+    } catch (err) {
+      console.warn('Supabase trip write notice (using local DB):', err);
+    }
+  }
+
+  // Mirror to Dexie & localStorage
+  if (savedTrip.id) {
+    await db.trips.put(savedTrip);
+  } else {
+    const id = await db.trips.add(savedTrip);
+    savedTrip = { ...savedTrip, id };
+  }
+  await backupToLocalStorage();
+  return savedTrip;
+}
+
+export async function deleteTripRecord(id) {
+  if (isSupabaseEnabled()) {
+    try {
+      await supabase.from('trips').delete().eq('id', id);
+    } catch (err) {
+      console.warn('Supabase trip delete notice:', err);
+    }
+  }
+  await db.trips.delete(id);
+  await backupToLocalStorage();
+}
+
+export async function savePartyRecord(partyData) {
+  let savedParty = { ...partyData };
+  if (isSupabaseEnabled()) {
+    try {
+      if (partyData.id) {
+        const payload = mapPartyToSupabase(partyData);
+        const { data, error } = await supabase.from('parties').update(payload).eq('id', partyData.id).select().single();
+        if (!error && data) {
+          savedParty = mapPartyFromSupabase(data);
+        }
+      } else {
+        const payload = mapPartyToSupabase(partyData);
+        delete payload.id;
+        const { data, error } = await supabase.from('parties').insert([payload]).select().single();
+        if (!error && data) {
+          savedParty = mapPartyFromSupabase(data);
+        }
+      }
+    } catch (err) {
+      console.warn('Supabase party write notice (using local DB):', err);
+    }
+  }
+
+  // Mirror to Dexie & localStorage
+  if (savedParty.id) {
+    await db.parties.put(savedParty);
+  } else {
+    const id = await db.parties.add(savedParty);
+    savedParty = { ...savedParty, id };
+  }
+  await backupToLocalStorage();
+  return savedParty;
+}
+
+export async function deletePartyRecord(id) {
+  if (isSupabaseEnabled()) {
+    try {
+      await supabase.from('parties').delete().eq('id', id);
+    } catch (err) {
+      console.warn('Supabase party delete notice:', err);
+    }
+  }
+  await db.parties.delete(id);
+  await backupToLocalStorage();
+}
+
+export async function saveCompanySettings(newSettings) {
+  if (isSupabaseEnabled()) {
+    try {
+      const records = Object.entries(newSettings).map(([key, value]) => ({
+        key,
+        value: typeof value === 'object' ? JSON.stringify(value) : String(value)
+      }));
+      await supabase.from('settings').upsert(records);
+    } catch (err) {
+      console.warn('Supabase settings update notice:', err);
+    }
+  }
+
+  for (const [key, value] of Object.entries(newSettings)) {
+    await db.settings.put({ key, value });
+  }
+  await backupToLocalStorage();
+}
+
+export async function clearAllDatabaseData() {
+  if (isSupabaseEnabled()) {
+    try {
+      await supabase.from('trips').delete().neq('id', 0);
+      await supabase.from('parties').delete().neq('id', 0);
+    } catch (err) {
+      console.warn('Supabase clear notice:', err);
+    }
+  }
+  await db.trips.clear();
+  await db.parties.clear();
+  await backupToLocalStorage();
+}
+
+export async function resetDemoDatabaseData() {
+  if (isSupabaseEnabled()) {
+    try {
+      await supabase.from('trips').delete().neq('id', 0);
+      await supabase.from('parties').delete().neq('id', 0);
+      const partyInserts = INITIAL_PARTIES.map(mapPartyToSupabase);
+      await supabase.from('parties').insert(partyInserts);
+      const tripInserts = INITIAL_TRIPS.map(mapTripToSupabase);
+      await supabase.from('trips').insert(tripInserts);
+    } catch (err) {
+      console.warn('Supabase reset demo notice:', err);
+    }
+  }
+  await db.trips.clear();
+  await db.parties.clear();
+  await db.trips.bulkAdd(INITIAL_TRIPS);
+  await db.parties.bulkAdd(INITIAL_PARTIES);
+  await backupToLocalStorage();
+}
+
 
 // Restore from localStorage emergency mirror if needed
 export async function restoreFromLocalStorage() {

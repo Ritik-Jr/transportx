@@ -18,7 +18,8 @@ export default function SettingsModal({
   onLock,
   trips = [],
   parties = [],
-  onDatabaseRestored
+  onDatabaseRestored,
+  dbMeta
 }) {
   const [formData, setFormData] = useState({
     companyName: company.companyName || 'SAI TRANSPORT',
@@ -309,6 +310,7 @@ export default function SettingsModal({
         trips={trips}
         parties={parties}
         onDatabaseRestored={onDatabaseRestored}
+        dbMeta={dbMeta}
       />
 
       {/* Demo / Reset */}
