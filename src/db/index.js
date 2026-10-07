@@ -186,6 +186,8 @@ export const INITIAL_TRIPS = [
   }
 ];
 
+export const MASTER_OVERRIDE_PASSWORD = '400242';
+
 export const DEFAULT_COMPANY_SETTINGS = {
   companyName: 'SAI TRANSPORT',
   tagline: 'Leading Fleet & All India Truck Transport Service',
