@@ -35,21 +35,21 @@ export default function PeriodDropdown({ period = 'today', onChange }) {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3.5 py-1.5 sm:py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-semibold text-zinc-900 dark:text-white shadow-xs hover:bg-zinc-50 dark:hover:bg-zinc-800 transition cursor-pointer"
+        className="flex items-center gap-2 px-3.5 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-semibold text-zinc-900 dark:text-white shadow-xs hover:bg-zinc-50 dark:hover:bg-zinc-800 transition cursor-pointer active:scale-95"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
-        <Calendar className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
+        <Calendar className="w-4 h-4 text-zinc-500 shrink-0" />
         <span className="truncate">{selectedOption.label}</span>
-        <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
         <div 
-          className="absolute right-0 sm:right-auto sm:left-0 top-full mt-1.5 w-44 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl z-30 py-1.5 text-xs animate-in fade-in zoom-in-95 duration-100"
+          className="absolute right-0 sm:right-auto sm:left-0 top-full mt-1.5 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl z-30 py-1.5 text-xs animate-in fade-in zoom-in-95 duration-100"
           role="listbox"
         >
-          <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+          <div className="px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
             Time Range
           </div>
           {PERIOD_OPTIONS.map((item) => {
@@ -64,14 +64,14 @@ export default function PeriodDropdown({ period = 'today', onChange }) {
                   onChange(item.id);
                   setIsOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2 text-left font-medium transition cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 sm:py-2 text-left font-medium transition cursor-pointer active:bg-zinc-100 ${
                   isSelected
                     ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-bold'
                     : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-white'
                 }`}
               >
                 <span>{item.label}</span>
-                {isSelected && <Check className="w-3.5 h-3.5 text-zinc-900 dark:text-white shrink-0" />}
+                {isSelected && <Check className="w-4 h-4 text-zinc-900 dark:text-white shrink-0" />}
               </button>
             );
           })}

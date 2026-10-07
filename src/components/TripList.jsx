@@ -213,17 +213,17 @@ export default function TripList({
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
             onClick={exportTripsToCsv}
-            className="px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-zinc-200 dark:border-zinc-800 shadow-xs"
+            className="px-3.5 py-2 sm:px-3.5 sm:py-2 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-zinc-200 dark:border-zinc-800 shadow-xs"
           >
-            <FileSpreadsheet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400" />
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span>Excel</span>
           </button>
 
           <button
             onClick={onNewTrip}
-            className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95"
+            className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95"
           >
-            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Plus className="w-4 h-4" />
             <span>Add Truck Entry</span>
           </button>
         </div>
@@ -235,18 +235,18 @@ export default function TripList({
           
           {/* Search */}
           <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+            <Search className="w-4 h-4 sm:w-4 sm:h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by Vehicle No, Party, Driver, LR, City..."
-              className="w-full pl-9 pr-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-xs placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+              className="w-full pl-10 pr-3 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-sm sm:text-xs placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
             />
             {searchTerm && (
               <button 
                 onClick={() => setSearchTerm('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-zinc-400 hover:text-zinc-700 dark:hover:text-white p-1"
               >
                 Clear
               </button>
@@ -254,7 +254,7 @@ export default function TripList({
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-0.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
             {[
               { id: 'ALL', label: 'All' },
               { id: 'PENDING', label: 'Pending' },
@@ -265,7 +265,7 @@ export default function TripList({
               <button
                 key={tab.id}
                 onClick={() => setStatusFilter(tab.id)}
-                className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer ${
+                className={`px-3 py-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer active:scale-95 ${
                   statusFilter === tab.id
                     ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs'
                     : 'bg-zinc-100 dark:bg-zinc-950 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
@@ -581,10 +581,10 @@ export default function TripList({
                         e.stopPropagation();
                         onViewBilty(trip);
                       }}
-                      className="flex-1 py-2 px-2.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 py-2.5 px-3 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer active:scale-95"
                       title="Print Bilty"
                     >
-                      <Printer className="w-3.5 h-3.5" />
+                      <Printer className="w-4 h-4" />
                       <span>Bilty</span>
                     </button>
 
@@ -593,10 +593,10 @@ export default function TripList({
                         e.stopPropagation();
                         onRecordPayment(trip);
                       }}
-                      className="flex-1 py-2 px-2.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="flex-1 py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer active:scale-95"
                       title="Record Payment"
                     >
-                      <CreditCard className="w-3.5 h-3.5" />
+                      <CreditCard className="w-4 h-4" />
                       <span>Payment</span>
                     </button>
 
@@ -605,10 +605,10 @@ export default function TripList({
                         e.stopPropagation();
                         handleShareWhatsApp(trip);
                       }}
-                      className="p-2 text-zinc-500 hover:text-emerald-600 dark:hover:text-emerald-400 bg-zinc-100 dark:bg-zinc-800 rounded-xl transition cursor-pointer"
+                      className="p-2.5 text-zinc-500 hover:text-emerald-600 dark:hover:text-emerald-400 bg-zinc-100 dark:bg-zinc-800 rounded-xl transition cursor-pointer active:scale-95"
                       title="Share on WhatsApp"
                     >
-                      <Share2 className="w-4 h-4" />
+                      <Share2 className="w-4.5 h-4.5" />
                     </button>
                   </div>
 
@@ -618,10 +618,10 @@ export default function TripList({
                         e.stopPropagation();
                         onEditTrip(trip);
                       }}
-                      className="p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                      className="p-2.5 text-zinc-500 hover:text-zinc-900 dark:hover:text-white rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer active:scale-95"
                       title="Edit Trip"
                     >
-                      <Edit3 className="w-4 h-4" />
+                      <Edit3 className="w-4.5 h-4.5" />
                     </button>
 
                     <button
@@ -629,10 +629,10 @@ export default function TripList({
                         e.stopPropagation();
                         onDeleteTrip(trip);
                       }}
-                      className="p-2 text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer"
+                      className="p-2.5 text-zinc-500 hover:text-rose-600 dark:hover:text-rose-400 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer active:scale-95"
                       title="Delete Trip"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4.5 h-4.5" />
                     </button>
                   </div>
                 </div>

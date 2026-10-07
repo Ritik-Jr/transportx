@@ -53,12 +53,12 @@ export default function Pagination({
         </span>
 
         {pageSizeOptions && onPageSizeChange && (
-          <div className="flex items-center gap-1.5 pl-2 border-l border-zinc-200 dark:border-zinc-800 text-[11px]">
+          <div className="flex items-center gap-1.5 pl-2 border-l border-zinc-200 dark:border-zinc-800 text-xs">
             <span className="hidden sm:inline">Per page:</span>
             <select
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg px-2 py-1 text-zinc-900 dark:text-white font-medium focus:outline-none cursor-pointer"
+              className="bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-2.5 py-1.5 text-zinc-900 dark:text-white font-medium focus:outline-none cursor-pointer"
             >
               {pageSizeOptions.map((opt) => (
                 <option key={opt} value={opt}>
@@ -72,7 +72,7 @@ export default function Pagination({
 
       {/* Right side: Page Navigation Controls */}
       {totalPages > 1 && (
-        <div className="flex items-center gap-1 w-full sm:w-auto justify-center sm:justify-end">
+        <div className="flex items-center gap-1.5 w-full sm:w-auto justify-center sm:justify-end">
           
           {/* Jump to first page (desktop) */}
           <button
@@ -80,9 +80,9 @@ export default function Pagination({
             onClick={() => onPageChange(1)}
             disabled={safeCurrentPage === 1}
             title="First Page"
-            className="hidden sm:flex items-center justify-center p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+            className="hidden sm:flex items-center justify-center p-2 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
           >
-            <ChevronsLeft className="w-3.5 h-3.5" />
+            <ChevronsLeft className="w-4 h-4" />
           </button>
 
           {/* Previous page */}
@@ -91,9 +91,9 @@ export default function Pagination({
             onClick={() => onPageChange(safeCurrentPage - 1)}
             disabled={safeCurrentPage === 1}
             title="Previous Page"
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer font-medium text-[11px]"
+            className="flex items-center gap-1 px-3 py-2 sm:px-2.5 sm:py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer font-medium text-xs sm:text-[11px] active:scale-95"
           >
-            <ChevronLeft className="w-3.5 h-3.5" />
+            <ChevronLeft className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
             <span className="sm:inline">Prev</span>
           </button>
 
@@ -113,7 +113,7 @@ export default function Pagination({
                   key={p}
                   type="button"
                   onClick={() => onPageChange(p)}
-                  className={`min-w-7 h-7 px-2 rounded-lg text-xs font-semibold flex items-center justify-center transition cursor-pointer ${
+                  className={`min-w-8 h-8 px-2 rounded-xl text-xs font-semibold flex items-center justify-center transition cursor-pointer ${
                     isCurrent
                       ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
@@ -136,10 +136,10 @@ export default function Pagination({
             onClick={() => onPageChange(safeCurrentPage + 1)}
             disabled={safeCurrentPage === totalPages}
             title="Next Page"
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer font-medium text-[11px]"
+            className="flex items-center gap-1 px-3 py-2 sm:px-2.5 sm:py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer font-medium text-xs sm:text-[11px] active:scale-95"
           >
             <span className="sm:inline">Next</span>
-            <ChevronRight className="w-3.5 h-3.5" />
+            <ChevronRight className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
           </button>
 
           {/* Jump to last page (desktop) */}

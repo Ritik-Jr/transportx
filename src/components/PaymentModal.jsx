@@ -72,14 +72,14 @@ export default function PaymentModal({ trip, isOpen, onClose, onSavePayment }) {
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-zinc-400 hover:text-zinc-800 dark:hover:text-white rounded-lg cursor-pointer"
+            className="p-2 sm:p-1.5 text-zinc-400 hover:text-zinc-800 dark:hover:text-white rounded-xl transition cursor-pointer active:scale-95"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5 sm:w-4 sm:h-4" />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-4 space-y-3 text-xs">
+        <form onSubmit={handleSubmit} className="p-4 space-y-3.5 text-xs">
           
           <div className="p-3 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200/80 dark:border-zinc-800 space-y-1">
             <div className="flex justify-between text-zinc-500 dark:text-zinc-400">
@@ -105,16 +105,16 @@ export default function PaymentModal({ trip, isOpen, onClose, onSavePayment }) {
                 <button
                   type="button"
                   onClick={handleSettleFull}
-                  className="text-[10px] text-zinc-700 dark:text-zinc-300 font-semibold underline underline-offset-2 flex items-center gap-1 cursor-pointer"
+                  className="text-xs text-zinc-700 dark:text-zinc-300 font-semibold underline underline-offset-2 flex items-center gap-1 cursor-pointer py-1"
                 >
-                  <Sparkles className="w-3 h-3 text-amber-500" />
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                   <span>Settle All</span>
                 </button>
               )}
             </div>
 
             <div className="relative">
-              <IndianRupee className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+              <IndianRupee className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
               <input
                 type="number"
                 min="1"
@@ -125,13 +125,13 @@ export default function PaymentModal({ trip, isOpen, onClose, onSavePayment }) {
                 placeholder="0"
                 autoFocus
                 required
-                className="w-full pl-8 pr-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-xl font-bold text-zinc-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                className="w-full pl-9 pr-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-700 rounded-xl font-bold text-zinc-900 dark:text-white text-base sm:text-sm focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
               />
             </div>
           </div>
 
           {numPayment > 0 && (
-            <div className="p-2 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 rounded-xl text-emerald-800 dark:text-emerald-300 flex justify-between font-medium">
+            <div className="p-2.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 rounded-xl text-emerald-800 dark:text-emerald-300 flex justify-between font-medium">
               <span>New Balance:</span>
               <strong className={newBalance === 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-400'}>
                 {newBalance === 0 ? '₹0 (Full Paid)' : formatCurrency(newBalance)}
@@ -146,7 +146,7 @@ export default function PaymentModal({ trip, isOpen, onClose, onSavePayment }) {
             <select
               value={paymentMode}
               onChange={(e) => setPaymentMode(e.target.value)}
-              className="w-full px-3 py-1.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white"
+              className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-sm sm:text-xs box-border"
             >
               <option value="UPI / GPay / PhonePe">UPI / GPay / PhonePe</option>
               <option value="Cash">Cash</option>
@@ -164,7 +164,7 @@ export default function PaymentModal({ trip, isOpen, onClose, onSavePayment }) {
               value={paymentRef}
               onChange={(e) => setPaymentRef(e.target.value)}
               placeholder="e.g. UTR or Cheque no"
-              className="w-full px-3 py-1.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white font-mono text-[11px]"
+              className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white font-mono text-sm sm:text-xs box-border"
             />
           </div>
 
@@ -172,13 +172,13 @@ export default function PaymentModal({ trip, isOpen, onClose, onSavePayment }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-semibold cursor-pointer"
+              className="px-4 py-2.5 sm:py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 text-sm sm:text-xs font-semibold cursor-pointer active:scale-95"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold cursor-pointer shadow-xs"
+              className="px-4 py-2.5 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm sm:text-xs font-semibold cursor-pointer shadow-xs active:scale-95"
             >
               Save Payment
             </button>

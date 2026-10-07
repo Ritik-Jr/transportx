@@ -36,10 +36,10 @@ export default function ConfirmModal({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded-xl transition cursor-pointer"
+          className="absolute top-4 right-4 p-2 sm:p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded-xl transition cursor-pointer active:scale-95"
           aria-label="Close dialog"
         >
-          <X className="w-4 h-4" />
+          <X className="w-5 h-5 sm:w-4 sm:h-4" />
         </button>
 
         {/* Warning Icon Badge */}
@@ -72,7 +72,7 @@ export default function ConfirmModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+            className="px-4 py-2.5 sm:py-2 rounded-xl text-sm sm:text-xs font-semibold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer active:scale-95"
           >
             {cancelLabel}
           </button>
@@ -83,7 +83,7 @@ export default function ConfirmModal({
               onConfirm();
               onClose();
             }}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition cursor-pointer active:scale-95 ${
+            className={`px-4 py-2.5 sm:py-2 rounded-xl text-sm sm:text-xs font-semibold shadow-xs transition cursor-pointer active:scale-95 ${
               isDestructive
                 ? 'bg-rose-600 hover:bg-rose-700 text-white'
                 : 'bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900'

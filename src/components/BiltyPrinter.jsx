@@ -39,31 +39,31 @@ export default function BiltyPrinter({ trip, company = {}, onClose }) {
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={handleShareWhatsApp}
-              className="p-2 sm:px-3.5 sm:py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+              className="p-2.5 sm:px-3.5 sm:py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
               title="Share Bilty on WhatsApp"
               aria-label="Share Bilty on WhatsApp"
             >
-              <Share2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+              <Share2 className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
               <span className="hidden sm:inline">WhatsApp</span>
             </button>
 
             <button
               onClick={handlePrint}
-              className="p-2 sm:px-3.5 sm:py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+              className="p-2.5 sm:px-3.5 sm:py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer active:scale-95"
               title="Print A4 Voucher"
               aria-label="Print A4 Voucher"
             >
-              <Printer className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+              <Printer className="w-5 h-5 sm:w-3.5 sm:h-3.5" />
               <span className="hidden sm:inline">Print A4 Voucher</span>
             </button>
 
             <button
               onClick={onClose}
-              className="p-2 sm:p-1.5 text-zinc-400 hover:text-zinc-800 dark:hover:text-white rounded-xl cursor-pointer"
+              className="p-2.5 sm:p-1.5 text-zinc-400 hover:text-zinc-800 dark:hover:text-white rounded-xl cursor-pointer active:scale-95"
               title="Close"
               aria-label="Close"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>

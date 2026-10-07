@@ -849,9 +849,9 @@ export default function Analytics({ trips = [], parties = [], onNavigateTab }) {
                         <button
                           onClick={() => handleSendReminder(p)}
                           title="WhatsApp Reminder"
-                          className="p-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-lg cursor-pointer transition border border-emerald-200 dark:border-emerald-800/60"
+                          className="p-2 sm:p-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-xl cursor-pointer transition border border-emerald-200 dark:border-emerald-800/60 active:scale-95"
                         >
-                          <Share2 className="w-3.5 h-3.5" />
+                          <Share2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                         </button>
                       )}
                     </div>

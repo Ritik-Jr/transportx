@@ -233,9 +233,9 @@ export default function PartyLedger({
 
         <button
           onClick={handleOpenAdd}
-          className="px-3.5 py-1.5 sm:px-4 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95 self-start sm:self-auto"
+          className="px-4 py-2 sm:px-4 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95 self-start sm:self-auto"
         >
-          <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <Plus className="w-4 h-4" />
           <span>Add Party</span>
         </button>
       </div>
@@ -243,20 +243,20 @@ export default function PartyLedger({
       {/* Search & Sort Bar */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-2.5 sm:p-3 shadow-xs flex flex-col sm:flex-row items-center gap-2.5">
         <div className="relative flex-1 w-full">
-          <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search party by name, phone, city, or GSTIN..."
-            className="w-full pl-9 pr-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-xs placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+            className="w-full pl-10 pr-3 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-sm sm:text-xs placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
           />
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full sm:w-auto px-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-xs font-semibold focus:outline-none cursor-pointer"
+            className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-sm sm:text-xs font-semibold focus:outline-none cursor-pointer box-border"
           >
             <option value="balance-desc">Sort: Highest Due</option>
             <option value="name-asc">Sort: Name (A-Z)</option>
@@ -359,9 +359,9 @@ export default function PartyLedger({
               <div className="pt-2.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-1.5">
                 <button
                   onClick={() => setSelectedPartyForStatement(party)}
-                  className="flex-1 py-1.5 px-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1 transition cursor-pointer"
+                  className="flex-1 py-2.5 px-3 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer active:scale-95"
                 >
-                  <FileText className="w-3.5 h-3.5" />
+                  <FileText className="w-4 h-4" />
                   <span>Statement</span>
                 </button>
 
@@ -369,9 +369,9 @@ export default function PartyLedger({
                   <button
                     onClick={() => handleSendWhatsAppReminder(party)}
                     title="Send WhatsApp Reminder"
-                    className="p-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-xl transition cursor-pointer border border-emerald-200 dark:border-emerald-800/50"
+                    className="p-2.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 rounded-xl transition cursor-pointer border border-emerald-200 dark:border-emerald-800/50 active:scale-95"
                   >
-                    <Share2 className="w-3.5 h-3.5" />
+                    <Share2 className="w-4.5 h-4.5" />
                   </button>
                 )}
 
@@ -380,16 +380,16 @@ export default function PartyLedger({
                     <button
                       onClick={() => handleOpenEdit(party)}
                       title="Edit Party"
-                      className="p-1.5 text-zinc-400 hover:text-zinc-800 dark:hover:text-white rounded-xl transition cursor-pointer"
+                      className="p-2.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-white rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer active:scale-95"
                     >
-                      <Edit3 className="w-3.5 h-3.5" />
+                      <Edit3 className="w-4.5 h-4.5" />
                     </button>
                     <button
                       onClick={() => onDeleteParty(party)}
                       title="Delete Party"
-                      className="p-1.5 text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-xl transition cursor-pointer"
+                      className="p-2.5 text-zinc-500 hover:text-rose-600 dark:hover:text-rose-400 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 transition cursor-pointer active:scale-95"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4.5 h-4.5" />
                     </button>
                   </>
                 )}
@@ -434,9 +434,9 @@ export default function PartyLedger({
               </div>
               <button
                 onClick={() => setSelectedPartyForStatement(null)}
-                className="p-1 text-zinc-400 hover:text-zinc-800 dark:hover:text-white rounded-lg cursor-pointer"
+                className="p-2 sm:p-1.5 text-zinc-400 hover:text-zinc-800 dark:hover:text-white rounded-xl transition cursor-pointer active:scale-95"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5 sm:w-4 sm:h-4" />
               </button>
             </div>
 
@@ -662,13 +662,13 @@ export default function PartyLedger({
               </h3>
               <button
                 onClick={() => setPartyModalOpen(false)}
-                className="p-1 text-zinc-400 hover:text-zinc-800 dark:hover:text-white rounded-lg cursor-pointer"
+                className="p-2 sm:p-1.5 text-zinc-400 hover:text-zinc-800 dark:hover:text-white rounded-xl transition cursor-pointer active:scale-95"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5 sm:w-4 sm:h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSavePartyForm} className="p-5 space-y-3 text-xs">
+            <form onSubmit={handleSavePartyForm} className="p-5 space-y-3.5 text-xs">
               <div>
                 <label className="block font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Party Name *
@@ -679,7 +679,7 @@ export default function PartyLedger({
                   onChange={(e) => setPartyForm({ ...partyForm, name: e.target.value })}
                   placeholder="e.g. Radhe Krishna Traders"
                   required
-                  className="w-full px-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                  className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-sm sm:text-xs focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
                 />
               </div>
 
@@ -692,7 +692,7 @@ export default function PartyLedger({
                   value={partyForm.phone}
                   onChange={(e) => setPartyForm({ ...partyForm, phone: e.target.value })}
                   placeholder="e.g. 9822012345"
-                  className="w-full px-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                  className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-sm sm:text-xs focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
                 />
               </div>
 
@@ -705,7 +705,7 @@ export default function PartyLedger({
                   value={partyForm.gstin}
                   onChange={(e) => setPartyForm({ ...partyForm, gstin: e.target.value.toUpperCase() })}
                   placeholder="e.g. 27AAAAA0000A1Z5"
-                  className="w-full px-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white font-mono uppercase focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                  className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white font-mono uppercase text-sm sm:text-xs focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
                 />
               </div>
 
@@ -718,7 +718,7 @@ export default function PartyLedger({
                   value={partyForm.city}
                   onChange={(e) => setPartyForm({ ...partyForm, city: e.target.value })}
                   placeholder="e.g. Pune / Surat / Mumbai"
-                  className="w-full px-3 py-1.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                  className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-sm sm:text-xs focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
                 />
               </div>
 
@@ -731,7 +731,7 @@ export default function PartyLedger({
                   value={partyForm.address}
                   onChange={(e) => setPartyForm({ ...partyForm, address: e.target.value })}
                   placeholder="e.g. Plot 12, Transport Nagar"
-                  className="w-full px-3 py-1.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white resize-none focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white"
+                  className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white text-sm sm:text-xs resize-none focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
                 />
               </div>
 
@@ -739,13 +739,13 @@ export default function PartyLedger({
                 <button
                   type="button"
                   onClick={() => setPartyModalOpen(false)}
-                  className="px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs font-semibold cursor-pointer"
+                  className="px-4 py-2.5 sm:py-2 rounded-xl border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 text-sm sm:text-xs font-semibold cursor-pointer active:scale-95"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold cursor-pointer shadow-xs"
+                  className="px-4 py-2.5 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm sm:text-xs font-semibold cursor-pointer shadow-xs active:scale-95"
                 >
                   {editingParty ? 'Save' : 'Add Party'}
                 </button>

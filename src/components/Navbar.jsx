@@ -39,7 +39,7 @@ export default function Navbar({
             {/* Brand Logo & Name (Clean text only, no truck icon) */}
             <div className="leading-tight">
               <span className="font-extrabold text-zinc-900 dark:text-white text-base sm:text-lg tracking-tight block font-heading">
-                SAI TRANSPORT
+                TRANSPORTX
               </span>
               <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium hidden sm:block">
                 Fleet Accounts
@@ -78,25 +78,26 @@ export default function Navbar({
             </nav>
 
             {/* Actions: New Trip, Theme Toggle (Lock button moved to Settings) */}
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-2">
               
               {/* New Trip Button */}
               <button
                 onClick={onNewTrip}
-                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold shadow-xs transition cursor-pointer active:scale-95"
+                className="flex items-center gap-1.5 px-3.5 py-2 sm:px-3.5 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold shadow-xs transition cursor-pointer active:scale-95"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                 <span className="hidden sm:inline">New Trip</span>
-                <span className="sm:hidden">New</span>
+                <span className="sm:hidden font-bold">New</span>
               </button>
 
               {/* Theme Toggle Button */}
               <button
                 onClick={onToggleTheme}
                 title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
-                className="p-1.5 sm:p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                className="p-2.5 sm:p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                aria-label="Toggle theme"
               >
-                {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-zinc-700" />}
+                {theme === 'dark' ? <Sun className="w-5 h-5 sm:w-4 sm:h-4 text-amber-400" /> : <Moon className="w-5 h-5 sm:w-4 sm:h-4 text-zinc-700" />}
               </button>
 
             </div>
@@ -105,9 +106,9 @@ export default function Navbar({
         </div>
       </header>
 
-      {/* Mobile Fixed Bottom Navigation Bar for Perfect 5-Item Symmetry */}
+      {/* Mobile Fixed Bottom Navigation Bar (Larger touch targets and icons) */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 transition-colors duration-150 no-print pb-safe">
-        <div className="grid grid-cols-5 h-14">
+        <div className="grid grid-cols-5 h-16">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -115,14 +116,17 @@ export default function Navbar({
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`flex flex-col items-center justify-center gap-0.5 py-1 text-[11px] font-medium transition cursor-pointer ${
+                className={`flex flex-col items-center justify-center py-1 transition cursor-pointer active:scale-95 ${
                   isActive 
                     ? 'text-zinc-900 dark:text-white font-bold' 
                     : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
                 }`}
+                aria-label={item.label}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
-                <span>{item.label}</span>
+                <div className={`p-1 rounded-xl transition ${isActive ? 'bg-zinc-100 dark:bg-zinc-800/80' : ''}`}>
+                  <Icon className={`w-5.5 h-5.5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />
+                </div>
+                <span className="text-[11px] font-semibold tracking-tight leading-none mt-0.5">{item.label}</span>
               </button>
             );
           })}
