@@ -179,7 +179,7 @@ export default function AuthGate({
   const handleAdminResetSubmit = async (e) => {
     e.preventDefault();
     if (resetState.adminPasscode !== ADMIN_MASTER_PASSWORD) {
-      setResetState(prev => ({ ...prev, error: 'Admin Master Code is incorrect (must be 400242).' }));
+      setResetState(prev => ({ ...prev, error: 'Admin Master Code is incorrect.' }));
       return;
     }
     if (!/^\d{6}$/.test(resetState.newPasscode)) {
@@ -191,7 +191,7 @@ export default function AuthGate({
       return;
     }
     if (resetState.newPasscode === ADMIN_MASTER_PASSWORD) {
-      setResetState(prev => ({ ...prev, error: '400242 is reserved as the permanent Admin Master Passcode. Choose a different code for users.' }));
+      setResetState(prev => ({ ...prev, error: 'This passcode is reserved for Admin. Choose a different 6-digit code for users.' }));
       return;
     }
 
@@ -211,7 +211,7 @@ export default function AuthGate({
       setResetState(prev => ({
         ...prev,
         error: '',
-        success: `User passcode reset to ${resetState.newPasscode}! Admin Master Password (400242) remains unchanged.`
+        success: `User passcode reset to ${resetState.newPasscode}! Admin Master Password remains unchanged.`
       }));
 
       // Pre-fill digits on unlock screen so user can unlock immediately
@@ -403,7 +403,7 @@ export default function AuthGate({
             </div>
 
             <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-3.5 leading-relaxed">
-              If the user forgot their passcode, enter the <strong>Admin Master Passcode (400242)</strong> to set a new 6-digit user passcode. The Admin password will remain 400242.
+              If the user forgot their passcode, enter the <strong>Admin Master Passcode</strong> to set a new 6-digit user passcode.
             </p>
 
             <form onSubmit={handleAdminResetSubmit} className="space-y-3">
@@ -417,7 +417,7 @@ export default function AuthGate({
                   maxLength={6}
                   value={resetState.adminPasscode}
                   onChange={(e) => setResetState(prev => ({ ...prev, adminPasscode: e.target.value.replace(/\D/g, ''), error: '' }))}
-                  placeholder="Enter 400242"
+                  placeholder="Enter Admin Master Passcode"
                   required
                   className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-mono text-xs font-bold text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
                 />

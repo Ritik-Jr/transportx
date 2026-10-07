@@ -82,9 +82,9 @@ export default function SettingsModal({
     const entered = passwordState.currentPassword;
     const isResetByAdmin = entered === ADMIN_MASTER_PASSWORD;
 
-    // Current password must match either the active user password OR admin master password (400242)
+    // Current password must match either the active user password OR admin master password
     if (entered !== activeUserPassword && !isResetByAdmin) {
-      setPasswordMessage({ type: 'error', text: 'Current passcode is incorrect. Use your current passcode or 400242 (Admin Master).' });
+      setPasswordMessage({ type: 'error', text: 'Current passcode is incorrect. Please verify your passcode or Admin Master code.' });
       return;
     }
 
@@ -99,7 +99,7 @@ export default function SettingsModal({
     }
 
     if (passwordState.newPassword === ADMIN_MASTER_PASSWORD) {
-      setPasswordMessage({ type: 'error', text: '400242 is reserved as the permanent Admin Master Password. Please choose a different 6-digit passcode for users.' });
+      setPasswordMessage({ type: 'error', text: 'This passcode is reserved for Admin. Please choose a different 6-digit passcode for users.' });
       return;
     }
 
@@ -140,7 +140,7 @@ export default function SettingsModal({
     setPasswordMessage({ 
       type: 'success', 
       text: isResetByAdmin 
-        ? `User passcode reset to ${savedCode}! Admin Master Password (400242) remains unchanged.`
+        ? `User passcode reset to ${savedCode}! Admin Master Password remains unchanged.`
         : '6-digit passcode updated successfully! Old passcode has been expired.' 
     });
     setTimeout(() => setPasswordMessage(null), 5000);
@@ -186,21 +186,16 @@ export default function SettingsModal({
 
         <form onSubmit={handleChangePassword} className="space-y-3.5 max-w-md text-xs">
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                Current Passcode
-              </label>
-              <span className="text-[10px] text-zinc-400">
-                Use 400242 to reset forgotten passcode
-              </span>
-            </div>
+            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+              Current Passcode
+            </label>
             <input
               type="password"
               inputMode="numeric"
               maxLength={6}
               value={passwordState.currentPassword}
               onChange={(e) => setPasswordState({ ...passwordState, currentPassword: e.target.value.replace(/\D/g, '') })}
-              placeholder="Enter current PIN or 400242 (Admin Master)"
+              placeholder="Enter current 6-digit passcode"
               required
               className="w-full px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-mono text-sm sm:text-xs font-bold text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white transition-colors box-border"
             />
