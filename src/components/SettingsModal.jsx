@@ -6,9 +6,15 @@ import {
   CheckCircle2, 
   AlertCircle, 
   RotateCcw, 
-  Trash2
+  Trash2,
+  X,
+  Sparkles,
+  ShieldCheck
 } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import DatabaseCenter from './DatabaseCenter';
+import ProfileSuccessAnimation from './ProfileSuccessAnimation';
+import PasswordSuccessAnimation from './PasswordSuccessAnimation';
 
 export default function SettingsModal({ 
   company = {}, 
@@ -43,11 +49,26 @@ export default function SettingsModal({
 
   const [statusMessage, setStatusMessage] = useState(null);
   const [passwordMessage, setPasswordMessage] = useState(null);
+  const [profileSuccessModal, setProfileSuccessModal] = useState(false);
+  const [passwordSuccessModal, setPasswordSuccessModal] = useState(false);
+  const [savedPasswordInfo, setSavedPasswordInfo] = useState({ code: '', isAdminReset: false });
 
   const handleSaveCompanyProfile = (e) => {
     e.preventDefault();
     onSaveCompany(formData);
+    
+    // Trigger dramatic celebration confetti
+    try {
+      confetti({
+        particleCount: 75,
+        spread: 80,
+        origin: { y: 0.5 },
+        colors: ['#10b981', '#14b8a6', '#06b6d4', '#f59e0b', '#ffffff']
+      });
+    } catch (err) {}
+
     setStatusMessage('Settings saved successfully');
+    setProfileSuccessModal(true);
     setTimeout(() => setStatusMessage(null), 3000);
   };
 
@@ -100,11 +121,26 @@ export default function SettingsModal({
       localStorage.setItem('sai_transport_saved_pin', passwordState.newPassword);
     }
 
+    const savedCode = passwordState.newPassword;
     setPasswordState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+
+    // Trigger dramatic cybersecurity confetti
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 85,
+        origin: { y: 0.5 },
+        colors: ['#06b6d4', '#10b981', '#3b82f6', '#14b8a6', '#ffffff']
+      });
+    } catch (err) {}
+
+    setSavedPasswordInfo({ code: savedCode, isAdminReset: isResetByAdmin });
+    setPasswordSuccessModal(true);
+
     setPasswordMessage({ 
       type: 'success', 
       text: isResetByAdmin 
-        ? `User passcode reset to ${passwordState.newPassword}! Admin Master Password (400242) remains unchanged.`
+        ? `User passcode reset to ${savedCode}! Admin Master Password (400242) remains unchanged.`
         : '6-digit passcode updated successfully! Old passcode has been expired.' 
     });
     setTimeout(() => setPasswordMessage(null), 5000);
@@ -221,9 +257,10 @@ export default function SettingsModal({
 
           <button
             type="submit"
-            className="px-4 py-2.5 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm sm:text-xs font-semibold cursor-pointer shadow-xs active:scale-95 transition"
+            className="px-5 py-2.5 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm sm:text-xs font-semibold cursor-pointer shadow-xs active:scale-95 transition flex items-center gap-1.5"
           >
-            Update Passcode
+            <Lock className="w-3.5 h-3.5" />
+            <span>Update Passcode</span>
           </button>
         </form>
       </div>
@@ -321,9 +358,9 @@ export default function SettingsModal({
 
             <button
               type="submit"
-              className="px-4 py-2.5 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm sm:text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
+              className="px-5 py-2.5 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm sm:text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
             >
-              <Save className="w-4 h-4" />
+              <Save className="w-3.5 h-3.5" />
               <span>Save Profile</span>
             </button>
           </div>
@@ -355,6 +392,81 @@ export default function SettingsModal({
               <Trash2 className="w-4 h-4" />
               <span>Wipe All Cloud Records</span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Dramatic Profile Saved Animation Modal */}
+      {profileSuccessModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setProfileSuccessModal(false)}
+        >
+          <div 
+            className="bg-zinc-900 border border-zinc-800 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setProfileSuccessModal(false)}
+              className="absolute top-3.5 right-3.5 z-30 p-2 rounded-xl text-zinc-400 hover:text-white bg-zinc-800/80 hover:bg-zinc-700/80 transition cursor-pointer backdrop-blur-sm"
+              title="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <ProfileSuccessAnimation
+              companyName={formData.companyName}
+              gstin={formData.gstin}
+              phone={formData.phone}
+              address={formData.address}
+            />
+
+            <div className="p-4 bg-zinc-900 border-t border-zinc-800/80">
+              <button
+                type="button"
+                onClick={() => setProfileSuccessModal(false)}
+                className="w-full py-2.5 sm:py-3 bg-white hover:bg-zinc-100 text-zinc-900 rounded-2xl font-bold text-xs sm:text-sm shadow-md transition cursor-pointer active:scale-[0.98]"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dramatic Password / Passcode Updated Animation Modal */}
+      {passwordSuccessModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-3.5 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setPasswordSuccessModal(false)}
+        >
+          <div 
+            className="bg-zinc-900 border border-zinc-800 rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPasswordSuccessModal(false)}
+              className="absolute top-3.5 right-3.5 z-30 p-2 rounded-xl text-zinc-400 hover:text-white bg-zinc-800/80 hover:bg-zinc-700/80 transition cursor-pointer backdrop-blur-sm"
+              title="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <PasswordSuccessAnimation
+              newPasscode={savedPasswordInfo.code}
+              isAdminReset={savedPasswordInfo.isAdminReset}
+              onClose={() => setPasswordSuccessModal(false)}
+            />
+
+            <div className="p-4 bg-zinc-900 border-t border-zinc-800/80">
+              <button
+                type="button"
+                onClick={() => setPasswordSuccessModal(false)}
+                className="w-full py-2.5 sm:py-3 bg-white hover:bg-zinc-100 text-zinc-900 rounded-2xl font-bold text-xs sm:text-sm shadow-md transition cursor-pointer active:scale-[0.98]"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}

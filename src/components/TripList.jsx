@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   Search, 
   Plus, 
-  FileSpreadsheet, 
   Printer, 
   Edit3, 
   Trash2, 
@@ -18,7 +17,6 @@ import {
   Phone,
   ChevronDown
 } from 'lucide-react';
-import { exportTripsToCsv } from '../db';
 import Pagination from './Pagination';
 import { formatTripWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
 
@@ -257,14 +255,6 @@ export default function TripList({
         </div>
 
         <div className="hidden sm:flex items-center gap-2 self-start sm:self-auto">
-          <button
-            onClick={exportTripsToCsv}
-            className="px-3.5 py-2 sm:px-3.5 sm:py-2 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-zinc-200 dark:border-zinc-800 shadow-xs"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>Excel</span>
-          </button>
-
           <button
             onClick={onNewTrip}
             className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95"
