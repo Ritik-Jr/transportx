@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Truck, ShieldCheck, Sun, Moon, AlertCircle, ArrowRight, Eye, EyeOff, KeyRound } from 'lucide-react';
-import confetti from 'canvas-confetti';
 
 export default function AuthGate({ 
   onAuthenticated, 
@@ -200,14 +199,6 @@ export default function AuthGate({
         await onResetUserPassword(resetState.newPasscode);
       }
       localStorage.setItem('sai_transport_active_password', resetState.newPasscode);
-      try {
-        confetti({
-          particleCount: 75,
-          spread: 80,
-          origin: { y: 0.5 },
-          colors: ['#06b6d4', '#10b981', '#3b82f6', '#14b8a6', '#ffffff']
-        });
-      } catch (err) {}
       setResetState(prev => ({
         ...prev,
         error: '',
