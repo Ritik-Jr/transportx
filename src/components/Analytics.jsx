@@ -3,7 +3,6 @@ import {
   IndianRupee, 
   Truck, 
   Users, 
-  Fuel, 
   MapPin, 
   Share2, 
   Clock, 
@@ -731,8 +730,8 @@ export default function Analytics({ trips = [], parties = [], onNavigateTab }) {
 
       </div>
 
-      {/* Row 2: Route Corridors & Client Ledger Leaderboards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+      {/* Row 2: Route Corridors, Client Ledger & Fleet Vehicles */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         
         {/* Top Profitable Freight Corridors */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col justify-between">
@@ -874,65 +873,8 @@ export default function Analytics({ trips = [], parties = [], onNavigateTab }) {
           )}
         </div>
 
-      </div>
-
-      {/* Row 3: Operating Expense Breakdown & Fleet Vehicle Utilization */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
-        
-        {/* Operating Expense Breakdown */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-6 shadow-xs">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Fuel className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
-              <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm">
-                Operational Cost Breakdown
-              </h3>
-            </div>
-            <span className="text-[10px] text-zinc-400">Total: {formatCurrency(analyticsData.totalExpenses)}</span>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-zinc-600 dark:text-zinc-300 font-medium">Diesel Fuel Expenses</span>
-                <span className="font-bold text-zinc-900 dark:text-white">{formatCurrency(analyticsData.totalDiesel)}</span>
-              </div>
-              <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-zinc-800 dark:bg-zinc-200 rounded-full transition-all duration-500"
-                  style={{
-                    width: `${analyticsData.totalExpenses > 0 ? (analyticsData.totalDiesel / analyticsData.totalExpenses) * 100 : 0}%`
-                  }}
-                ></div>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-zinc-600 dark:text-zinc-300 font-medium">Toll & Highway Tax</span>
-                <span className="font-bold text-zinc-900 dark:text-white">{formatCurrency(analyticsData.totalToll)}</span>
-              </div>
-              <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-zinc-500 dark:bg-zinc-400 rounded-full transition-all duration-500"
-                  style={{
-                    width: `${analyticsData.totalExpenses > 0 ? (analyticsData.totalToll / analyticsData.totalExpenses) * 100 : 0}%`
-                  }}
-                ></div>
-              </div>
-            </div>
-
-            <div className="p-3 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-between text-xs">
-              <span className="text-zinc-500 dark:text-zinc-400 font-medium">Fleet Profitability Index:</span>
-              <span className="font-bold text-emerald-700 dark:text-emerald-400">
-                {analyticsData.profitMargin}% Net Margin
-              </span>
-            </div>
-          </div>
-        </div>
-
         {/* Fleet Vehicle Utilization */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col justify-between">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col justify-between md:col-span-2 lg:col-span-1">
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
