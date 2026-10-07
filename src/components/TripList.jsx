@@ -405,7 +405,7 @@ export default function TripList({
                       {/* LR & Date */}
                       <td className="py-3.5 px-4">
                         <span className="font-mono font-bold text-zinc-900 dark:text-white block text-xs">
-                          {trip.lrNo || 'ST-NA'}
+                          {trip.lrNo || 'N/A'}
                         </span>
                         <span className="text-[10px] text-zinc-400 block mt-0.5">
                           {trip.date}

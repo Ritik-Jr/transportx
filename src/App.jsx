@@ -17,6 +17,7 @@ import {
   isRlsError,
   setCachedSchemaStatus
 } from './utils/supabase';
+import { generateUniqueLrId } from './utils/lrGenerator';
 import AuthGate from './components/AuthGate';
 import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';
@@ -183,19 +184,9 @@ export default function App() {
     setIsAuthenticated(false);
   };
 
-  // Compute Next LR Number
+  // Generate Unique 4-character Random LR ID (Letters + Numbers, Non-repeating)
   const getNextLrNo = () => {
-    if (!trips || trips.length === 0) return 'ST-1001';
-    let highest = 1000;
-    trips.forEach(t => {
-      if (t.lrNo) {
-        const numPart = parseInt(t.lrNo.replace(/\D/g, ''), 10);
-        if (!isNaN(numPart) && numPart > highest) {
-          highest = numPart;
-        }
-      }
-    });
-    return `ST-${highest + 1}`;
+    return generateUniqueLrId(trips);
   };
 
   const handleCopySql = () => {
@@ -548,6 +539,7 @@ export default function App() {
         onSaveParty={handleSaveParty}
         editingTrip={editingTrip}
         parties={parties}
+        trips={trips}
         nextLrNo={getNextLrNo()}
       />
 

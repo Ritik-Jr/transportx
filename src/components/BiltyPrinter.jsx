@@ -97,7 +97,7 @@ export default function BiltyPrinter({ trip, company = {}, onClose }) {
             <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-zinc-300 py-2.5 text-xs gap-y-1.5">
               <div>
                 <span className="text-[9px] text-zinc-500 block uppercase font-semibold">Bilty / LR No.</span>
-                <span className="font-mono font-bold text-xs text-zinc-950">{trip.lrNo || 'ST-NA'}</span>
+                <span className="font-mono font-bold text-xs text-zinc-950">{trip.lrNo || 'N/A'}</span>
               </div>
               <div>
                 <span className="text-[9px] text-zinc-500 block uppercase font-semibold">Date</span>

@@ -8,8 +8,10 @@ import {
   Check, 
   CheckCircle2, 
   ArrowRight, 
-  ArrowLeft 
+  ArrowLeft,
+  RefreshCw 
 } from 'lucide-react';
+import { generateUniqueLrId } from '../utils/lrGenerator';
 
 const VEHICLE_TYPES = [
   '14 Wheeler',
@@ -50,7 +52,8 @@ export default function TripModal({
   onSaveParty,
   editingTrip = null, 
   parties = [], 
-  nextLrNo = 'ST-1005'
+  trips = [],
+  nextLrNo = ''
 }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSuccessView, setIsSuccessView] = useState(false);
@@ -107,7 +110,7 @@ export default function TripModal({
       }
     } else {
       setFormData({
-        lrNo: nextLrNo,
+        lrNo: nextLrNo || generateUniqueLrId(trips),
         partyName: '',
         partyPhone: '',
         vehicleNo: '',
@@ -134,7 +137,7 @@ export default function TripModal({
     setIsSuccessView(false);
     setSavedTripSummary(null);
     setErrors({});
-  }, [editingTrip, isOpen, nextLrNo, parties]);
+  }, [editingTrip, isOpen, nextLrNo, parties, trips]);
 
   const sortedParties = useMemo(() => {
     return [...parties].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
@@ -252,6 +255,17 @@ export default function TripModal({
     const newErrors = {};
 
     if (currentStep === 1) {
+      const enteredLr = (formData.lrNo || '').toUpperCase().trim();
+      if (!enteredLr) {
+        newErrors.lrNo = 'LR / Bilty ID required';
+      } else {
+        const isDuplicate = (trips || []).some(
+          t => t && t.lrNo && t.lrNo.toUpperCase().trim() === enteredLr && (!editingTrip || t.id !== editingTrip.id)
+        );
+        if (isDuplicate) {
+          newErrors.lrNo = `LR ID "${enteredLr}" already exists. Please use a unique ID.`;
+        }
+      }
       if (!formData.fromCity?.trim()) newErrors.fromCity = 'Origin location required';
       if (!formData.toCity?.trim()) newErrors.toCity = 'Destination required';
       if (!formData.date) newErrors.date = 'Trip date required';
@@ -289,6 +303,18 @@ export default function TripModal({
     e.preventDefault();
     const newErrors = {};
 
+    const enteredLr = (formData.lrNo || '').toUpperCase().trim();
+    if (!enteredLr) {
+      newErrors.lrNo = 'LR / Bilty ID required';
+    } else {
+      const isDuplicate = (trips || []).some(
+        t => t && t.lrNo && t.lrNo.toUpperCase().trim() === enteredLr && (!editingTrip || t.id !== editingTrip.id)
+      );
+      if (isDuplicate) {
+        newErrors.lrNo = `LR ID "${enteredLr}" already exists. Please use a unique ID.`;
+      }
+    }
+
     if (!formData.fromCity?.trim()) newErrors.fromCity = 'Origin location required';
     if (!formData.toCity?.trim()) newErrors.toCity = 'Destination required';
     if (!formData.partyName?.trim()) newErrors.partyName = 'Party name required';
@@ -298,7 +324,7 @@ export default function TripModal({
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      if (newErrors.fromCity || newErrors.toCity) setCurrentStep(1);
+      if (newErrors.lrNo || newErrors.fromCity || newErrors.toCity) setCurrentStep(1);
       else if (newErrors.partyName) setCurrentStep(2);
       else if (newErrors.vehicleNo || newErrors.driverName) setCurrentStep(3);
       else if (newErrors.amount) setCurrentStep(4);
@@ -307,6 +333,7 @@ export default function TripModal({
 
     const payload = {
       ...formData,
+      lrNo: enteredLr,
       amount: parseFloat(formData.amount) || 0,
       advance: parseFloat(formData.advance) || 0,
       balance: parseFloat(formData.balance) || 0,
@@ -435,7 +462,7 @@ export default function TripModal({
                     setIsSuccessView(false);
                     setCurrentStep(1);
                     setFormData({
-                      lrNo: nextLrNo,
+                      lrNo: generateUniqueLrId(trips),
                       partyName: '',
                       partyPhone: '',
                       vehicleNo: '',
@@ -510,15 +537,44 @@ export default function TripModal({
                 <div className="space-y-4 animate-in fade-in duration-150">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full min-w-0">
                     <div className="w-full min-w-0">
-                      <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                        Bilty / LR No.
-                      </label>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                          Bilty / LR ID *
+                        </label>
+                        {!editingTrip && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newId = generateUniqueLrId(trips);
+                              setFormData(prev => ({ ...prev, lrNo: newId }));
+                              if (errors.lrNo) setErrors(prev => ({ ...prev, lrNo: null }));
+                            }}
+                            className="text-[11px] text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-semibold flex items-center gap-1 transition cursor-pointer"
+                            title="Generate a new random 4-char unique LR ID"
+                          >
+                            <RefreshCw className="w-3 h-3" />
+                            <span>New ID</span>
+                          </button>
+                        )}
+                      </div>
                       <input
                         type="text"
+                        maxLength={8}
                         value={formData.lrNo}
-                        onChange={(e) => setFormData({ ...formData, lrNo: e.target.value })}
-                        className="w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-mono font-bold text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
+                        onChange={(e) => {
+                          const val = e.target.value.toUpperCase();
+                          setFormData({ ...formData, lrNo: val });
+                          if (errors.lrNo) setErrors(prev => ({ ...prev, lrNo: null }));
+                        }}
+                        placeholder="e.g. 7B4K"
+                        className={`w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border ${
+                          errors.lrNo ? 'border-rose-500 focus:ring-rose-500' : 'border-zinc-200 dark:border-zinc-800 focus:ring-zinc-900 dark:focus:ring-white'
+                        } rounded-xl font-mono font-bold text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 box-border tracking-wider uppercase`}
+                        required
                       />
+                      {errors.lrNo && (
+                        <p className="text-rose-500 text-[10px] mt-1 font-medium">{errors.lrNo}</p>
+                      )}
                     </div>
 
                     {/* Trip Date with Mobile Overflow Fix */}
