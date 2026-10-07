@@ -249,28 +249,26 @@ export default function TruckSuccessAnimation({
       150
     );
 
-    // Rig geometric center:
-    // Tractor front bumper: Z = +4.15m, Trailer rear bumper: Z = -10.48m
-    // True Center of Mass: X = 0, Y = 1.65, Z = -3.15
-    const sideTarget = new THREE.Vector3(0, 1.65, -3.15);
-    
-    // Canonical sideview camera: Distance increased to 18.5m for a generous, spacious cinematic vista
-    const targetDistance = 18.5;
-    const targetPitch = 0.14;
-    const targetYaw = 0;
+    // Canonical Resting View:
+    // "in between left side and front view at a little lower angle facing up not much a little... and stays there"
+    // "In the end animation the truck is moving towards the a little top and right of the box. Not much."
+    const restingTarget = new THREE.Vector3(0.5, 1.85, -0.2);
+    const canonicalDistance = 16.3;
+    const canonicalTheta = -54.75 * (Math.PI / 180); // Middle between front (+Z) and left (-X)
+    const canonicalPitch = -2.81 * (Math.PI / 180);  // Lower angle facing slightly up (elevation ~2.8°)
 
-    const sidePos = new THREE.Vector3(
-      sideTarget.x + targetDistance * Math.cos(targetPitch),
-      sideTarget.y + targetDistance * Math.sin(targetPitch),
-      sideTarget.z
-    );
+    const restingCamPos = new THREE.Vector3(
+      restingTarget.x + canonicalDistance * Math.cos(canonicalPitch) * Math.sin(canonicalTheta),
+      restingTarget.y + canonicalDistance * Math.sin(canonicalPitch),
+      restingTarget.z + canonicalDistance * Math.cos(canonicalPitch) * Math.cos(canonicalTheta)
+    ); // Evaluates to approx (-12.8, 1.05, 9.2)
 
-    // Front start camera: Dramatic wide 3/4 front entry view from a distance
-    const frontPos = new THREE.Vector3(6.2, 2.5, 14.5);
-    const frontTarget = new THREE.Vector3(0, 1.65, 1.5);
+    // Starting camera: Low dramatic front view looking at the truck
+    const startCamPos = new THREE.Vector3(0.2, 1.6, 14.8);
+    const startTarget = new THREE.Vector3(0, 1.6, 2.5);
 
-    camera.position.copy(frontPos);
-    camera.lookAt(frontTarget);
+    camera.position.copy(startCamPos);
+    camera.lookAt(startTarget);
 
     // 3. WebGL Renderer
     const renderer = new THREE.WebGLRenderer({
@@ -1013,9 +1011,9 @@ export default function TruckSuccessAnimation({
     // -------------------------------------------------------------
     let startTime = performance.now();
     let isInteracting = false;
-    let yaw = 0;
-    let pitch = targetPitch;
-    let distance = targetDistance;
+    let theta = canonicalTheta;
+    let pitch = canonicalPitch;
+    let distance = canonicalDistance;
 
     let isPointerDown = false;
     let prevPointerX = 0;
@@ -1054,8 +1052,9 @@ export default function TruckSuccessAnimation({
       prevPointerX = clientX;
       prevPointerY = clientY;
 
-      yaw += deltaX * 0.006;
-      pitch = Math.max(-0.25, Math.min(0.9, pitch + deltaY * 0.004));
+      // Orbit around truck
+      theta += deltaX * 0.006;
+      pitch = Math.max(-0.45, Math.min(0.85, pitch + deltaY * 0.004));
     };
 
     const onTouchMove = (e) => {
@@ -1065,7 +1064,7 @@ export default function TruckSuccessAnimation({
         const currentDist = Math.hypot(dx, dy);
         if (pinchStartDist > 0) {
           const ratio = pinchStartDist / currentDist;
-          distance = Math.max(11.0, Math.min(28.0, distance * ratio));
+          distance = Math.max(10.0, Math.min(26.0, distance * ratio));
           pinchStartDist = currentDist;
         }
       } else if (e.touches.length === 1) {
@@ -1084,7 +1083,7 @@ export default function TruckSuccessAnimation({
       e.preventDefault();
       isInteracting = true;
       setIsInteractingState(true);
-      distance = Math.max(11.0, Math.min(28.0, distance + e.deltaY * 0.009));
+      distance = Math.max(10.0, Math.min(26.0, distance + e.deltaY * 0.009));
       clearTimeout(window._wheelResetTimer);
       window._wheelResetTimer = setTimeout(() => {
         isInteracting = false;
@@ -1107,6 +1106,7 @@ export default function TruckSuccessAnimation({
     let animId;
     const cruiseSpeed = 16.5; // Units per second forward
     let prevTime = performance.now();
+    const introDuration = 3.8; // Seconds for the full round sweep
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
@@ -1145,43 +1145,68 @@ export default function TruckSuccessAnimation({
       });
 
       // 9e. Camera Cinematic Choreography:
-      // Starts from the 3/4 front entry rolling smoothly around to the canonical sideview by ~2.8s.
-      // Stays locked in the sideview with comfortable breathing room.
+      // "starts from front of the truck take around start rotating from right side and end to the middle of left and front side"
+      // "at a little lower angle facing up not much a little... and stays there"
+      // "In the end animation the truck is moving towards the a little top and right of the box. Not much."
       if (!isInteracting) {
-        if (elapsed < 2.8) {
-          // Front to Sideview smooth arc transition
-          const progress = Math.min(1, elapsed / 2.8);
-          // Cubic ease-in-out
-          const t = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+        if (elapsed < introDuration) {
+          const progress = Math.min(1, elapsed / introDuration);
+          // Quintic ease-in-out for silky acceleration and gentle settling
+          const t = progress < 0.5 
+            ? 16 * Math.pow(progress, 5) 
+            : 1 - Math.pow(-2 * progress + 2, 5) / 2;
 
-          camera.position.lerpVectors(frontPos, sidePos, t);
-          const currentTarget = new THREE.Vector3().lerpVectors(frontTarget, sideTarget, t);
-          camera.lookAt(currentTarget);
+          // Sweeps 305.25° around the rig:
+          // Starts in front (0°), sweeps right (+X, 90°), sweeps behind trailer (-Z, 180°),
+          // sweeps along left side (-X, 270°), arrives at front-left (305.25° / -54.75°)
+          const orbitAngle = t * (305.25 * Math.PI / 180);
 
-          yaw = 0;
-          pitch = THREE.MathUtils.lerp(0.18, targetPitch, t);
-          distance = THREE.MathUtils.lerp(14.0, targetDistance, t);
-        } else {
-          // Smoothly spring / lerp back to canonical sideview
-          yaw = THREE.MathUtils.lerp(yaw, targetYaw, 0.055);
-          pitch = THREE.MathUtils.lerp(pitch, targetPitch, 0.055);
-          distance = THREE.MathUtils.lerp(distance, targetDistance, 0.055);
+          // Dynamic tracking target smoothly transitioning along the rig
+          const currentTarget = new THREE.Vector3(
+            THREE.MathUtils.lerp(0, restingTarget.x, t),
+            THREE.MathUtils.lerp(1.6, restingTarget.y, t),
+            2.5 * (1 - t) + (-3.2) * Math.sin(t * Math.PI) + restingTarget.z * t
+          );
 
-          const cx = sideTarget.x + distance * Math.cos(pitch) * Math.cos(yaw);
-          const cy = sideTarget.y + distance * Math.sin(pitch);
-          const cz = sideTarget.z + distance * Math.cos(pitch) * Math.sin(yaw);
+          // Orbit radii in X and Z
+          const rx = 16.5;
+          const rz = THREE.MathUtils.lerp(14.8, 16.5, Math.sin(t * Math.PI));
+
+          const cx = currentTarget.x + rx * Math.sin(orbitAngle);
+          const cz = currentTarget.z + rz * Math.cos(orbitAngle);
+
+          // Height profile: starts at 1.6m, rises to 2.4m around trailer back for a clear view,
+          // then smoothly glides down to 1.05m at front-left (low angle facing up)
+          const cy = THREE.MathUtils.lerp(1.6, 1.05, t) + 0.8 * Math.sin(t * Math.PI);
 
           camera.position.set(cx, cy, cz);
-          camera.lookAt(sideTarget);
+          camera.lookAt(currentTarget);
+
+          // Sync orbit parameters for smooth handoff
+          theta = canonicalTheta;
+          pitch = canonicalPitch;
+          distance = canonicalDistance;
+        } else {
+          // Stay in canonical front-left view at lower angle facing up; spring back smoothly on release
+          theta = THREE.MathUtils.lerp(theta, canonicalTheta, 0.055);
+          pitch = THREE.MathUtils.lerp(pitch, canonicalPitch, 0.055);
+          distance = THREE.MathUtils.lerp(distance, canonicalDistance, 0.055);
+
+          const cx = restingTarget.x + distance * Math.cos(pitch) * Math.sin(theta);
+          const cy = restingTarget.y + distance * Math.sin(pitch);
+          const cz = restingTarget.z + distance * Math.cos(pitch) * Math.cos(theta);
+
+          camera.position.set(cx, cy, cz);
+          camera.lookAt(restingTarget);
         }
       } else {
-        // User orbiting: calculate position around rig center
-        const cx = sideTarget.x + distance * Math.cos(pitch) * Math.cos(yaw);
-        const cy = sideTarget.y + distance * Math.sin(pitch);
-        const cz = sideTarget.z + distance * Math.cos(pitch) * Math.sin(yaw);
+        // User orbiting: calculate position around restingTarget
+        const cx = restingTarget.x + distance * Math.cos(pitch) * Math.sin(theta);
+        const cy = restingTarget.y + distance * Math.sin(pitch);
+        const cz = restingTarget.z + distance * Math.cos(pitch) * Math.cos(theta);
 
         camera.position.set(cx, cy, cz);
-        camera.lookAt(sideTarget);
+        camera.lookAt(restingTarget);
       }
 
       renderer.render(scene, camera);
@@ -1260,8 +1285,8 @@ export default function TruckSuccessAnimation({
           <Compass className={`w-3.5 h-3.5 ${isInteractingState ? 'text-emerald-500 animate-spin' : 'text-zinc-400'}`} />
           <span className="hidden sm:inline">
             {isInteractingState 
-              ? 'Orbiting in 3D... release to return to side profile' 
-              : '⇄ Drag to orbit • Pinch to zoom • Auto-returns to side profile'}
+              ? 'Orbiting in 3D... release to return to front-left view' 
+              : '⇄ Drag to orbit • Pinch to zoom • Auto-returns to front-left view'}
           </span>
           <span className="sm:hidden">
             {isInteractingState ? 'Orbiting 3D...' : '⇄ Drag to rotate in 3D'}
