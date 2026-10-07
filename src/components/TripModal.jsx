@@ -678,7 +678,6 @@ export default function TripModal({
                           errors.fromCity ? 'border-rose-400' : 'border-zinc-200 dark:border-zinc-800'
                         }`}
                         required
-                        autoFocus
                       />
                       {errors.fromCity && <span className="text-rose-500 text-[11px] mt-0.5 block">{errors.fromCity}</span>}
                     </div>
@@ -793,7 +792,6 @@ export default function TripModal({
                               errors.partyName ? 'border-rose-400' : 'border-zinc-200 dark:border-zinc-800'
                             }`}
                             required
-                            autoFocus
                           />
                           {errors.partyName && <span className="text-rose-500 text-[11px] mt-0.5 block">{errors.partyName}</span>}
                         </div>
@@ -857,7 +855,6 @@ export default function TripModal({
                           errors.vehicleNo ? 'border-rose-400' : 'border-zinc-200 dark:border-zinc-800'
                         }`}
                         required
-                        autoFocus
                       />
                       {errors.vehicleNo && <span className="text-rose-500 text-[11px] mt-0.5 block">{errors.vehicleNo}</span>}
                     </div>
@@ -930,7 +927,6 @@ export default function TripModal({
                         onChange={(e) => setFormData({ ...formData, material: e.target.value })}
                         placeholder="e.g. Steel / Cement / Pipes"
                         className="w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
-                        autoFocus
                       />
                     </div>
 

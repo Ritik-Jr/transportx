@@ -20,7 +20,7 @@ import {
 } from '../db';
 import { isSupabaseEnabled, SUPABASE_SCHEMA_SQL } from '../utils/supabase';
 
-export default function DatabaseCenter({ trips = [], parties = [], onDatabaseRestored, dbMeta = {} }) {
+export default function DatabaseCenter({ trips = [], parties = [], onDatabaseRestored, dbMeta = {}, isAdmin = false }) {
   const [restoring, setRestoring] = useState(false);
   const [restoreMessage, setRestoreMessage] = useState(null);
   const [showSqlModal, setShowSqlModal] = useState(false);
@@ -83,57 +83,62 @@ export default function DatabaseCenter({ trips = [], parties = [], onDatabaseRes
         </p>
       </div>
 
-      {/* Database Mode Status Card */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/40">
-              <Cloud className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm">
-                  Supabase Cloud Database
-                </h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800">
-                  Cross-Device Sync
-                </span>
+      {/* Admin-Only Technical Status Cards (Supabase Cloud Database & Cross-Device Sync) */}
+      {isAdmin && (
+        <>
+          {/* Database Mode Status Card */}
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/40">
+                  <Cloud className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm">
+                      Supabase Cloud Database
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800">
+                      Cross-Device Sync
+                    </span>
+                  </div>
+                  <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-[11px] sm:text-xs">
+                    Connected to cloud database (<code>znczyfkpcpkmhutlmenh.supabase.co</code>). Every record created here is immediately visible across all devices.
+                  </p>
+                </div>
               </div>
-              <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-[11px] sm:text-xs">
-                Connected to cloud database (<code>znczyfkpcpkmhutlmenh.supabase.co</code>). Every record created here is immediately visible across all devices.
-              </p>
+              <button
+                onClick={() => setShowSqlModal(true)}
+                className="self-start sm:self-auto px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shrink-0"
+              >
+                <Code2 className="w-3.5 h-3.5 text-zinc-500" />
+                <span>Supabase SQL Setup</span>
+              </button>
             </div>
           </div>
-          <button
-            onClick={() => setShowSqlModal(true)}
-            className="self-start sm:self-auto px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shrink-0"
-          >
-            <Code2 className="w-3.5 h-3.5 text-zinc-500" />
-            <span>Supabase SQL Setup</span>
-          </button>
-        </div>
-      </div>
 
-      {/* Cloud Sync Notice Card */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xs">
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-200 dark:border-emerald-800/40">
-            <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
+          {/* Cloud Sync Notice Card */}
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xs">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-200 dark:border-emerald-800/40">
+                <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
+              <div className="text-xs sm:text-sm">
+                <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm">
+                  Real-time Cross-Device Cloud Storage
+                </h3>
+                <p className="text-zinc-600 dark:text-zinc-300 mt-1 leading-relaxed text-[11px] sm:text-xs">
+                  All truck records, freight accounts, and party ledgers are stored strictly in the Supabase cloud database. 
+                  No dummy data is stored locally. Accessing the app on phone, laptop, or office desktop shows the exact same live data.
+                </p>
+                <p className="text-zinc-400 dark:text-zinc-500 mt-2 text-[10px] sm:text-[11px]">
+                  Tip: Click <strong>Download Backup</strong> regularly to save an offline JSON backup or export to Excel.
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="text-xs sm:text-sm">
-            <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm">
-              Real-time Cross-Device Cloud Storage
-            </h3>
-            <p className="text-zinc-600 dark:text-zinc-300 mt-1 leading-relaxed text-[11px] sm:text-xs">
-              All truck records, freight accounts, and party ledgers are stored strictly in the Supabase cloud database. 
-              No dummy data is stored locally. Accessing the app on phone, laptop, or office desktop shows the exact same live data.
-            </p>
-            <p className="text-zinc-400 dark:text-zinc-500 mt-2 text-[10px] sm:text-[11px]">
-              Tip: Click <strong>Download Backup</strong> regularly to save an offline JSON backup or export to Excel.
-            </p>
-          </div>
-        </div>
-      </div>
+        </>
+      )}
 
       {/* Action Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
@@ -226,8 +231,8 @@ export default function DatabaseCenter({ trips = [], parties = [], onDatabaseRes
         </div>
       )}
 
-      {/* Supabase SQL Setup Modal */}
-      {showSqlModal && (
+      {/* Supabase SQL Setup Modal (Admin only) */}
+      {isAdmin && showSqlModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-2xl w-full p-4 sm:p-5 shadow-2xl space-y-3.5 max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">

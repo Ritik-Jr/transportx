@@ -19,7 +19,8 @@ export default function SettingsModal({
   trips = [],
   parties = [],
   onDatabaseRestored,
-  dbMeta
+  dbMeta,
+  isAdmin = false
 }) {
   const [formData, setFormData] = useState({
     companyName: company.companyName || 'SAI TRANSPORT',
@@ -321,25 +322,28 @@ export default function SettingsModal({
         parties={parties}
         onDatabaseRestored={onDatabaseRestored}
         dbMeta={dbMeta}
+        isAdmin={isAdmin}
       />
 
-      {/* Database Management */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xs">
-        <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm mb-0.5">Database Management</h3>
-        <p className="text-[11px] text-zinc-400 mb-2.5">
-          Manage your cloud records stored on Supabase. You can wipe all recorded trips and parties to start fresh.
-        </p>
+      {/* Database Management (Admin Only) */}
+      {isAdmin && (
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xs">
+          <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm mb-0.5">Database Management</h3>
+          <p className="text-[11px] text-zinc-400 mb-2.5">
+            Manage your cloud records stored on Supabase. You can wipe all recorded trips and parties to start fresh.
+          </p>
 
-        <div>
-          <button
-            onClick={onClearAllData}
-            className="px-4 py-2.5 sm:py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 rounded-xl text-sm sm:text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-rose-200 dark:border-rose-800/40 active:scale-95"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span>Wipe All Cloud Records</span>
-          </button>
+          <div>
+            <button
+              onClick={onClearAllData}
+              className="px-4 py-2.5 sm:py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 rounded-xl text-sm sm:text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-rose-200 dark:border-rose-800/40 active:scale-95"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Wipe All Cloud Records</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
     </div>
   );

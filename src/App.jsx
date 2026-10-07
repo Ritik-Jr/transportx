@@ -96,6 +96,18 @@ export default function App() {
     return stored === 'true';
   });
 
+  // Admin role check: Only passcode 400242 unlocks admin developer & technical controls
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(() => {
+    try {
+      const stored = localStorage.getItem('sai_transport_is_admin') || sessionStorage.getItem('sai_transport_is_admin');
+      if (stored === 'true') return true;
+      const savedPin = localStorage.getItem('sai_transport_saved_pin');
+      return savedPin === '400242';
+    } catch {
+      return false;
+    }
+  });
+
   // Active navigation tab
   const [activeTab, setActiveTab] = useState(() => {
     return getTabFromPath() || localStorage.getItem('sai_transport_active_tab') || 'dashboard';
@@ -182,7 +194,10 @@ export default function App() {
   const handleLock = () => {
     localStorage.removeItem('sai_transport_auth');
     sessionStorage.removeItem('sai_transport_auth');
+    localStorage.removeItem('sai_transport_is_admin');
+    sessionStorage.removeItem('sai_transport_is_admin');
     setIsAuthenticated(false);
+    setIsAdminLoggedIn(false);
   };
 
   // Generate Unique 6-character Random LR ID (Letters + Numbers, Non-repeating)
@@ -234,10 +249,16 @@ export default function App() {
     } catch (error) {
       console.error('Failed to save trip to cloud database:', error);
       if (isRlsError(error)) {
-        handleCopyFixRlsSql();
-        setIsRlsModalOpen(true);
+        if (isAdminLoggedIn) {
+          handleCopyFixRlsSql();
+          setIsRlsModalOpen(true);
+        } else {
+          alert('Unable to save entry. Please contact your system administrator.');
+        }
       } else {
-        alert('Database error: ' + error.message + '. Please ensure Supabase tables are created.');
+        alert(isAdminLoggedIn 
+          ? 'Database error: ' + error.message + '. Please ensure Supabase tables are created.'
+          : 'Unable to save entry. Please check your internet connection.');
       }
       throw error;
     }
@@ -290,10 +311,16 @@ export default function App() {
     } catch (error) {
       console.error('Failed to save party:', error);
       if (isRlsError(error)) {
-        handleCopyFixRlsSql();
-        setIsRlsModalOpen(true);
+        if (isAdminLoggedIn) {
+          handleCopyFixRlsSql();
+          setIsRlsModalOpen(true);
+        } else {
+          alert('Unable to save party profile. Please contact your system administrator.');
+        }
       } else {
-        alert('Save party error: ' + error.message);
+        alert(isAdminLoggedIn 
+          ? 'Save party error: ' + error.message 
+          : 'Unable to save party profile. Please check your internet connection.');
       }
     }
   };
@@ -360,7 +387,10 @@ export default function App() {
     const activePassword = companySettings?.masterPassword || localStorage.getItem('sai_transport_active_password') || '000000';
     return (
       <AuthGate
-        onAuthenticated={() => setIsAuthenticated(true)}
+        onAuthenticated={(isAdmin) => {
+          setIsAuthenticated(true);
+          setIsAdminLoggedIn(Boolean(isAdmin));
+        }}
         masterPassword={activePassword}
         theme={theme}
         onToggleTheme={toggleTheme}
@@ -386,8 +416,8 @@ export default function App() {
         onLock={handleLock}
       />
 
-      {/* Supabase Schema Notice Banner (Visible only if tables are not yet created in Supabase) */}
-      {dbMeta.status === 'needs_schema' && (
+      {/* Supabase Schema Notice Banner (Admin only: visible if tables are not yet created in Supabase) */}
+      {isAdminLoggedIn && dbMeta.status === 'needs_schema' && (
         <div className="bg-amber-500/15 border-b border-amber-500/30 px-4 py-2.5 text-xs text-amber-900 dark:text-amber-200 flex flex-wrap items-center justify-between gap-2 shadow-xs">
           <div className="flex items-center gap-2">
             <Database className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
@@ -416,8 +446,8 @@ export default function App() {
         </div>
       )}
 
-      {/* Supabase RLS Notice Banner (Visible when RLS is active and blocking inserts) */}
-      {dbMeta.status === 'rls_blocked' && (
+      {/* Supabase RLS Notice Banner (Admin only: visible when RLS is active and blocking inserts) */}
+      {isAdminLoggedIn && dbMeta.status === 'rls_blocked' && (
         <div className="bg-rose-500/15 border-b border-rose-500/30 px-4 py-2.5 text-xs text-rose-900 dark:text-rose-200 flex flex-wrap items-center justify-between gap-2 shadow-xs">
           <div className="flex items-center gap-2">
             <ShieldAlert className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
@@ -515,6 +545,7 @@ export default function App() {
                 parties={parties}
                 onDatabaseRestored={loadDatabaseData}
                 dbMeta={dbMeta}
+                isAdmin={isAdminLoggedIn}
               />
             )}
           </>
@@ -528,8 +559,12 @@ export default function App() {
             © {new Date().getFullYear()} <strong>{companySettings.companyName || 'SAI TRANSPORT'}</strong> • Cloud Fleet Accounts
           </div>
           <div className="flex items-center gap-3 text-[11px]">
-            <span>Cloud Database (Supabase)</span>
-            <span>•</span>
+            {isAdminLoggedIn && (
+              <>
+                <span>Cloud Database (Supabase)</span>
+                <span>•</span>
+              </>
+            )}
             <span>All Devices Synchronized</span>
           </div>
         </div>
@@ -581,8 +616,8 @@ export default function App() {
         isDestructive={confirmModal.isDestructive}
       />
 
-      {/* Row-Level Security (RLS) Fix Modal */}
-      {isRlsModalOpen && (
+      {/* Row-Level Security (RLS) Fix Modal (Admin only) */}
+      {isAdminLoggedIn && isRlsModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-xl w-full p-4 sm:p-5 shadow-2xl space-y-3.5">
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">

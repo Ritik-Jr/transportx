@@ -123,9 +123,12 @@ export default function AuthGate({
     const activeUserPassword = masterPassword || localStorage.getItem('sai_transport_active_password') || '000000';
     // Only the admin master password (400242) and the current active user-set password are valid
     if (code === ADMIN_MASTER_PASSWORD || code === activeUserPassword) {
+      const isAdmin = code === ADMIN_MASTER_PASSWORD;
       try {
         // Record that this device has successfully authenticated
         localStorage.setItem('sai_transport_device_logged_in', 'true');
+        localStorage.setItem('sai_transport_is_admin', isAdmin ? 'true' : 'false');
+        sessionStorage.setItem('sai_transport_is_admin', isAdmin ? 'true' : 'false');
 
         if (rememberMe) {
           localStorage.setItem('sai_transport_auth', 'true');
@@ -138,7 +141,7 @@ export default function AuthGate({
         }
       } catch (_) {}
 
-      onAuthenticated();
+      onAuthenticated(isAdmin);
     } else {
       setError('Incorrect passcode. Please try again.');
       setTimeout(() => {
