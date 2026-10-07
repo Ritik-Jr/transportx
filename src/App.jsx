@@ -242,23 +242,23 @@ export default function App() {
         const id = await db.trips.add(newTrip);
         const created = { ...newTrip, id };
         setTrips(prev => [created, ...prev]);
+      }
 
-        if (tripData.partyName) {
-          const exists = parties.some(
-            p => p.name.toLowerCase() === tripData.partyName.trim().toLowerCase()
-          );
-          if (!exists) {
-            const newParty = {
-              name: tripData.partyName.trim(),
-              phone: tripData.partyPhone || '',
-              city: tripData.toCity || '',
-              address: '',
-              gstin: '',
-              createdAt: new Date().toISOString()
-            };
-            const pId = await db.parties.add(newParty);
-            setParties(prev => [...prev, { ...newParty, id: pId }]);
-          }
+      if (tripData.partyName) {
+        const exists = parties.some(
+          p => p.name.toLowerCase() === tripData.partyName.trim().toLowerCase()
+        );
+        if (!exists) {
+          const newParty = {
+            name: tripData.partyName.trim(),
+            phone: tripData.partyPhone || '',
+            city: tripData.toCity || '',
+            address: '',
+            gstin: '',
+            createdAt: new Date().toISOString()
+          };
+          const pId = await db.parties.add(newParty);
+          setParties(prev => [...prev, { ...newParty, id: pId }]);
         }
       }
 
@@ -527,6 +527,7 @@ export default function App() {
           setEditingTrip(null);
         }}
         onSave={handleSaveTrip}
+        onSaveParty={handleSaveParty}
         editingTrip={editingTrip}
         parties={parties}
         nextLrNo={getNextLrNo()}

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   X, 
-  Truck
+  Truck,
+  Building2,
+  UserPlus
 } from 'lucide-react';
 
 const VEHICLE_TYPES = [
@@ -21,6 +23,7 @@ export default function TripModal({
   isOpen, 
   onClose, 
   onSave, 
+  onSaveParty,
   editingTrip = null, 
   parties = [],
   nextLrNo = 'ST-1005'
@@ -49,6 +52,9 @@ export default function TripModal({
   });
 
   const [errors, setErrors] = useState({});
+  const [partyMode, setPartyMode] = useState('existing'); // 'existing' | 'new'
+  const [selectedPartyId, setSelectedPartyId] = useState('');
+  const [quickSavedPartyMsg, setQuickSavedPartyMsg] = useState('');
 
   useEffect(() => {
     if (editingTrip) {
@@ -60,6 +66,20 @@ export default function TripModal({
         dieselExpense: String(editingTrip.dieselExpense || '0'),
         tollExpense: String(editingTrip.tollExpense || '0'),
       });
+
+      const matchedParty = parties.find(
+        p => p.name.trim().toLowerCase() === (editingTrip.partyName || '').trim().toLowerCase()
+      );
+      if (matchedParty) {
+        setPartyMode('existing');
+        setSelectedPartyId(String(matchedParty.id || matchedParty.name));
+      } else if (editingTrip.partyName) {
+        setPartyMode('new');
+        setSelectedPartyId('');
+      } else {
+        setPartyMode(parties.length > 0 ? 'existing' : 'new');
+        setSelectedPartyId('');
+      }
     } else {
       setFormData({
         lrNo: nextLrNo,
@@ -83,9 +103,31 @@ export default function TripModal({
         tollExpense: '0',
         remarks: ''
       });
+      setPartyMode(parties.length > 0 ? 'existing' : 'new');
+      setSelectedPartyId('');
     }
     setErrors({});
-  }, [editingTrip, isOpen, nextLrNo]);
+    setQuickSavedPartyMsg('');
+  }, [editingTrip, isOpen, nextLrNo, parties]);
+
+  const sortedParties = useMemo(() => {
+    return [...parties].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  }, [parties]);
+
+  const selectedPartyObj = useMemo(() => {
+    if (!formData.partyName) return null;
+    return parties.find(
+      p => (selectedPartyId && String(p.id || p.name) === String(selectedPartyId)) ||
+           p.name.trim().toLowerCase() === formData.partyName.trim().toLowerCase()
+    );
+  }, [parties, selectedPartyId, formData.partyName]);
+
+  const duplicatePartyMatch = useMemo(() => {
+    if (partyMode !== 'new' || !formData.partyName.trim()) return null;
+    return parties.find(
+      p => p.name.trim().toLowerCase() === formData.partyName.trim().toLowerCase()
+    );
+  }, [partyMode, formData.partyName, parties]);
 
   if (!isOpen) return null;
 
@@ -125,14 +167,72 @@ export default function TripModal({
     }));
   };
 
-  const handlePartySelect = (e) => {
+  const handleExistingPartyChange = (e) => {
+    const val = e.target.value;
+    if (val === '__ADD_NEW__') {
+      setPartyMode('new');
+      setSelectedPartyId('');
+      setFormData(prev => ({
+        ...prev,
+        partyName: '',
+        partyPhone: ''
+      }));
+      return;
+    }
+
+    setSelectedPartyId(val);
+    if (!val) {
+      setFormData(prev => ({
+        ...prev,
+        partyName: '',
+        partyPhone: ''
+      }));
+      return;
+    }
+
+    const found = parties.find(p => String(p.id || p.name) === val || p.name === val);
+    if (found) {
+      setFormData(prev => ({
+        ...prev,
+        partyName: found.name,
+        partyPhone: found.phone || '',
+        toCity: (!prev.toCity && found.city) ? found.city : prev.toCity
+      }));
+      if (errors.partyName) {
+        setErrors(prev => ({ ...prev, partyName: null }));
+      }
+    }
+  };
+
+  const handleNewPartyNameChange = (e) => {
     const name = e.target.value;
-    const found = parties.find(p => p.name.toLowerCase() === name.toLowerCase());
     setFormData(prev => ({
       ...prev,
-      partyName: name,
-      partyPhone: found ? (found.phone || prev.partyPhone) : prev.partyPhone
+      partyName: name
     }));
+    if (errors.partyName) {
+      setErrors(prev => ({ ...prev, partyName: null }));
+    }
+  };
+
+  const handleQuickSaveParty = async () => {
+    if (!formData.partyName.trim()) {
+      setErrors(prev => ({ ...prev, partyName: 'Party name required' }));
+      return;
+    }
+    if (onSaveParty) {
+      try {
+        await onSaveParty({
+          name: formData.partyName.trim(),
+          phone: formData.partyPhone.trim(),
+          city: formData.toCity.trim() || ''
+        });
+        setQuickSavedPartyMsg('Party saved to ledger!');
+        setTimeout(() => setQuickSavedPartyMsg(''), 3000);
+      } catch (err) {
+        console.error('Failed to quick save party:', err);
+      }
+    }
   };
 
   const handleSubmit = (e) => {
@@ -241,43 +341,222 @@ export default function TripModal({
             </div>
           </div>
 
-          {/* Section 2: Party */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-            <div className="min-w-0">
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                Transport Party Name *
-              </label>
-              <input
-                type="text"
-                list="party-suggestions-modal"
-                value={formData.partyName}
-                onChange={handlePartySelect}
-                placeholder="e.g. Shree Balaji Logistics"
-                className={`w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border rounded-xl text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border ${
-                  errors.partyName ? 'border-rose-400' : 'border-zinc-200 dark:border-zinc-800'
-                }`}
-                required
-              />
-              <datalist id="party-suggestions-modal">
-                {parties.map((p, idx) => (
-                  <option key={idx} value={p.name} />
-                ))}
-              </datalist>
-              {errors.partyName && <span className="text-rose-500 text-[11px] mt-0.5 block">{errors.partyName}</span>}
+          {/* Section 2: Party Details (Choose Existing vs Add New) */}
+          <div className="p-3 sm:p-3.5 bg-zinc-50 dark:bg-zinc-950/70 border border-zinc-200 dark:border-zinc-800 rounded-xl space-y-3 w-full box-border">
+            {/* Header & Mode Switcher */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-zinc-600 dark:text-zinc-400 shrink-0" />
+                <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                  Party Details *
+                </span>
+                {partyMode === 'existing' && selectedPartyObj && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40">
+                    Selected
+                  </span>
+                )}
+              </div>
+
+              {/* Segmented Mode Toggle */}
+              <div className="inline-flex p-0.5 bg-zinc-200/80 dark:bg-zinc-800/80 rounded-lg text-xs font-medium self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPartyMode('existing');
+                  }}
+                  className={`px-3 py-1.5 sm:py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+                    partyMode === 'existing'
+                      ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs font-bold'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Building2 className="w-3.5 h-3.5" />
+                  Choose Existing ({parties.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPartyMode('new');
+                    setSelectedPartyId('');
+                  }}
+                  className={`px-3 py-1.5 sm:py-1 rounded-md transition-all cursor-pointer flex items-center gap-1.5 ${
+                    partyMode === 'new'
+                      ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-xs font-bold'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                  }`}
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  + Add New Party
+                </button>
+              </div>
             </div>
 
-            <div className="min-w-0">
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                Party Phone / Mobile
-              </label>
-              <input
-                type="tel"
-                value={formData.partyPhone}
-                onChange={(e) => setFormData({ ...formData, partyPhone: e.target.value })}
-                placeholder="e.g. 9822012345"
-                className="w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
-              />
-            </div>
+            {/* Mode 1: Choose Existing Party */}
+            {partyMode === 'existing' ? (
+              <div className="space-y-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+                  <div className="min-w-0">
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                      Select Registered Party *
+                    </label>
+                    <select
+                      value={selectedPartyId}
+                      onChange={handleExistingPartyChange}
+                      className={`w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-white dark:bg-zinc-900 border rounded-xl text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border cursor-pointer ${
+                        errors.partyName ? 'border-rose-400' : 'border-zinc-200 dark:border-zinc-800'
+                      }`}
+                    >
+                      <option value="">-- Choose from existing parties --</option>
+                      {sortedParties.map(p => (
+                        <option key={p.id || p.name} value={String(p.id || p.name)}>
+                          {p.name} {p.city ? `• ${p.city}` : ''} {p.phone ? `(${p.phone})` : ''}
+                        </option>
+                      ))}
+                      <option value="__ADD_NEW__">➕ Add New Party Instead...</option>
+                    </select>
+                    {errors.partyName && <span className="text-rose-500 text-[11px] mt-0.5 block">{errors.partyName}</span>}
+                  </div>
+
+                  <div className="min-w-0">
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                      Party Phone / Mobile
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.partyPhone}
+                      onChange={(e) => setFormData({ ...formData, partyPhone: e.target.value })}
+                      placeholder="e.g. 9822012345"
+                      className="w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
+                    />
+                  </div>
+                </div>
+
+                {/* Selected Party Info & Quick Actions */}
+                {selectedPartyObj ? (
+                  <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-white dark:bg-zinc-900 border border-zinc-200/70 dark:border-zinc-800 rounded-lg text-xs text-zinc-600 dark:text-zinc-400">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-zinc-900 dark:text-white">{selectedPartyObj.name}</span>
+                      {selectedPartyObj.city && <span>• {selectedPartyObj.city}</span>}
+                      {selectedPartyObj.phone && <span>• {selectedPartyObj.phone}</span>}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPartyMode('new');
+                        setSelectedPartyId('');
+                        setFormData(prev => ({ ...prev, partyName: '', partyPhone: '' }));
+                      }}
+                      className="text-xs font-semibold text-zinc-900 dark:text-white underline hover:opacity-80 cursor-pointer"
+                    >
+                      Change to new party
+                    </button>
+                  </div>
+                ) : parties.length === 0 ? (
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400 p-2.5 bg-white dark:bg-zinc-900 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg flex items-center justify-between flex-wrap gap-2">
+                    <span>No existing parties saved in ledger yet.</span>
+                    <button
+                      type="button"
+                      onClick={() => setPartyMode('new')}
+                      className="font-bold text-zinc-900 dark:text-white underline cursor-pointer"
+                    >
+                      + Create New Party
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              /* Mode 2: Add New Party */
+              <div className="space-y-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+                  <div className="min-w-0">
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                      New Party Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.partyName}
+                      onChange={handleNewPartyNameChange}
+                      placeholder="e.g. Radhe Krishna Logistics"
+                      className={`w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-white dark:bg-zinc-900 border rounded-xl text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border ${
+                        errors.partyName ? 'border-rose-400' : 'border-zinc-200 dark:border-zinc-800'
+                      }`}
+                      required
+                    />
+                    {errors.partyName && <span className="text-rose-500 text-[11px] mt-0.5 block">{errors.partyName}</span>}
+                  </div>
+
+                  <div className="min-w-0">
+                    <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                      Party Phone / Mobile
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.partyPhone}
+                      onChange={(e) => setFormData({ ...formData, partyPhone: e.target.value })}
+                      placeholder="e.g. 9822012345"
+                      className="w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
+                    />
+                  </div>
+                </div>
+
+                {/* Duplicate Party Warning */}
+                {duplicatePartyMatch && (
+                  <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-800 dark:text-amber-300 flex items-center justify-between flex-wrap gap-2">
+                    <span>"{duplicatePartyMatch.name}" is already in your Party Ledger.</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPartyMode('existing');
+                        setSelectedPartyId(String(duplicatePartyMatch.id || duplicatePartyMatch.name));
+                        setFormData(prev => ({
+                          ...prev,
+                          partyName: duplicatePartyMatch.name,
+                          partyPhone: duplicatePartyMatch.phone || prev.partyPhone
+                        }));
+                      }}
+                      className="font-bold underline cursor-pointer"
+                    >
+                      Use Existing Party
+                    </button>
+                  </div>
+                )}
+
+                {/* Info & Helper actions */}
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+                  <div className="flex items-center gap-1.5">
+                    <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                      ✓ Auto-saved to Party Ledger on submission
+                    </span>
+                    {quickSavedPartyMsg && (
+                      <span className="text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 rounded">
+                        {quickSavedPartyMsg}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {onSaveParty && formData.partyName.trim() && !duplicatePartyMatch && (
+                      <button
+                        type="button"
+                        onClick={handleQuickSaveParty}
+                        className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 px-2.5 py-1 rounded-lg cursor-pointer transition active:scale-95"
+                      >
+                        + Save to Ledger Now
+                      </button>
+                    )}
+                    {parties.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setPartyMode('existing')}
+                        className="text-xs font-semibold text-zinc-900 dark:text-white underline hover:opacity-80 cursor-pointer"
+                      >
+                        ← Choose from existing ({parties.length})
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Section 3: Vehicle & Driver */}

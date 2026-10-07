@@ -28,10 +28,12 @@ export default defineConfig(({ command }) => ({
               fs.writeFileSync(path.join(routeDir, 'index.html'), indexHtml, 'utf-8');
             });
             // 2. Mirror complete dist output to docs/ for GitHub Pages 'main /docs' option
+            fs.rmSync('docs', { recursive: true, force: true });
             fs.cpSync('dist', 'docs', { recursive: true });
 
             // 3. Mirror compiled assets and route folders to repository root for GitHub Pages 'main / (root)' option
             if (fs.existsSync('dist/assets')) {
+              fs.rmSync('assets', { recursive: true, force: true });
               fs.cpSync('dist/assets', 'assets', { recursive: true });
             }
             if (fs.existsSync('dist/404.html')) {
