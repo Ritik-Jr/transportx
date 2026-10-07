@@ -529,8 +529,8 @@ export default function TripList({
                 {/* Row 1: LR, Date & Status */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-zinc-900 dark:text-white text-sm">{trip.lrNo}</span>
-                    <span className="text-[11px] text-zinc-400 font-medium">• {trip.date}</span>
+                    <span className="font-mono font-bold text-zinc-900 dark:text-white text-base">{trip.lrNo}</span>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">• {trip.date}</span>
                   </div>
                   <div>
                     {getPaymentBadge(trip.paymentStatus)}
@@ -538,19 +538,19 @@ export default function TripList({
                 </div>
 
                 {/* Row 2: Truck No & Route Box */}
-                <div className="p-3 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-100 dark:border-zinc-800 space-y-1.5">
+                <div className="p-3 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-100 dark:border-zinc-800 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-zinc-900 dark:text-white text-xs sm:text-sm">{trip.vehicleNo}</span>
-                    <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">{trip.fromCity} ➔ {trip.toCity}</span>
+                    <span className="font-mono font-bold text-zinc-900 dark:text-white text-sm sm:text-base">{trip.vehicleNo}</span>
+                    <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{trip.fromCity} ➔ {trip.toCity}</span>
                   </div>
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400 flex items-center justify-between pt-0.5">
-                    <span className="truncate max-w-[160px] text-zinc-700 dark:text-zinc-300 font-medium">{trip.partyName}</span>
-                    <span>{trip.material || 'General cargo'}</span>
+                  <div className="text-xs text-zinc-600 dark:text-zinc-300 flex items-center justify-between pt-0.5">
+                    <span className="truncate max-w-[170px] text-zinc-800 dark:text-zinc-200 font-medium">{trip.partyName}</span>
+                    <span className="text-zinc-500 dark:text-zinc-400">{trip.material || 'General cargo'}</span>
                   </div>
                   {trip.driverName && (
-                    <div className="text-[10px] text-zinc-400 pt-1 border-t border-zinc-200/50 dark:border-zinc-800/80 flex items-center justify-between">
-                      <span>Driver: <strong className="text-zinc-600 dark:text-zinc-300">{trip.driverName}</strong></span>
-                      {trip.driverMobile && <span className="font-mono">{trip.driverMobile}</span>}
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400 pt-1.5 border-t border-zinc-200/50 dark:border-zinc-800/80 flex items-center justify-between">
+                      <span>Driver: <strong className="text-zinc-700 dark:text-zinc-300">{trip.driverName}</strong></span>
+                      {trip.driverMobile && <span className="font-mono text-zinc-700 dark:text-zinc-300">{trip.driverMobile}</span>}
                     </div>
                   )}
                 </div>
@@ -558,16 +558,16 @@ export default function TripList({
                 {/* Row 3: Financials in Spacious 3-column Card */}
                 <div className="grid grid-cols-3 gap-2 py-2.5 px-3 bg-zinc-50/60 dark:bg-zinc-950/60 rounded-xl border border-zinc-100 dark:border-zinc-800 text-center">
                   <div>
-                    <span className="text-zinc-400 block text-[10px] uppercase tracking-wider">Freight</span>
-                    <strong className="text-zinc-900 dark:text-white block mt-0.5 text-xs sm:text-sm font-bold">{formatCurrency(trip.amount)}</strong>
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[11px] sm:text-xs uppercase font-semibold tracking-wider">Freight</span>
+                    <strong className="text-zinc-900 dark:text-white block mt-0.5 text-sm sm:text-base font-bold">{formatCurrency(trip.amount)}</strong>
                   </div>
                   <div>
-                    <span className="text-zinc-400 block text-[10px] uppercase tracking-wider">Advance</span>
-                    <span className="text-emerald-700 dark:text-emerald-400 font-semibold block mt-0.5 text-xs sm:text-sm">{formatCurrency(trip.advance)}</span>
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[11px] sm:text-xs uppercase font-semibold tracking-wider">Advance</span>
+                    <span className="text-emerald-700 dark:text-emerald-400 font-bold block mt-0.5 text-sm sm:text-base">{formatCurrency(trip.advance)}</span>
                   </div>
                   <div>
-                    <span className="text-zinc-400 block text-[10px] uppercase tracking-wider">Balance Due</span>
-                    <span className={`font-bold block mt-0.5 text-xs sm:text-sm ${trip.balance > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                    <span className="text-zinc-500 dark:text-zinc-400 block text-[11px] sm:text-xs uppercase font-semibold tracking-wider">Balance Due</span>
+                    <span className={`font-bold block mt-0.5 text-sm sm:text-base ${trip.balance > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                       {formatCurrency(trip.balance)}
                     </span>
                   </div>

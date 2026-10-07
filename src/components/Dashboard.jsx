@@ -364,15 +364,15 @@ export default function Dashboard({
                 {paginatedDueParties.map((p, idx) => (
                   <div 
                     key={idx}
-                    className="p-2.5 sm:p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800 rounded-xl flex items-center justify-between"
+                    className="p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800 rounded-xl flex items-center justify-between"
                   >
                     <div>
-                      <div className="font-semibold text-zinc-900 dark:text-white text-xs line-clamp-1">{p.partyName}</div>
-                      <div className="text-[10px] sm:text-[11px] text-zinc-400 mt-0.5">
+                      <div className="font-bold text-zinc-900 dark:text-white text-sm line-clamp-1">{p.partyName}</div>
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                         {p.pendingTrips} trip{p.pendingTrips > 1 ? 's' : ''} unpaid
                       </div>
                     </div>
-                    <div className="text-right font-bold text-rose-600 dark:text-rose-400 text-xs sm:text-sm">
+                    <div className="text-right font-bold text-rose-600 dark:text-rose-400 text-sm sm:text-base">
                       {formatCurrency(p.totalDue)}
                     </div>
                   </div>
@@ -409,7 +409,7 @@ export default function Dashboard({
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Truck className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
-                <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm">Recent Truck Entries</h3>
+                <h3 className="font-bold text-zinc-900 dark:text-white text-sm sm:text-base">Recent Truck Entries</h3>
               </div>
               <button
                 onClick={() => onNavigateTab('trips')}
@@ -488,35 +488,35 @@ export default function Dashboard({
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-zinc-900 dark:text-white text-xs">{t.lrNo}</span>
-                          <span className="text-[10px] text-zinc-400">• {t.date}</span>
+                          <span className="font-mono font-bold text-zinc-900 dark:text-white text-base">{t.lrNo}</span>
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">• {t.date}</span>
                         </div>
                         <div>{getStatusBadge(t.paymentStatus)}</div>
                       </div>
 
                       <div className="flex items-start justify-between gap-3 pt-1 border-t border-zinc-200/60 dark:border-zinc-800">
                         <div className="space-y-1">
-                          <div className="font-mono font-bold text-zinc-900 dark:text-white text-xs">
+                          <div className="font-mono font-bold text-zinc-900 dark:text-white text-sm sm:text-base">
                             {t.vehicleNo}
                           </div>
-                          <div className="text-xs text-zinc-800 dark:text-zinc-200 font-medium">
+                          <div className="text-sm text-zinc-800 dark:text-zinc-200 font-medium">
                             {t.fromCity} ➔ {t.toCity}
                           </div>
-                          <div className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate max-w-[170px]">
+                          <div className="text-xs text-zinc-600 dark:text-zinc-400 truncate max-w-[170px] font-medium">
                             {t.partyName}
                           </div>
                         </div>
 
                         <div className="text-right flex flex-col items-end shrink-0">
-                          <span className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm">
+                          <span className="font-bold text-zinc-900 dark:text-white text-sm sm:text-base">
                             {formatCurrency(t.amount)}
                           </span>
                           {t.balance > 0 ? (
-                            <span className="text-[10px] text-rose-600 dark:text-rose-400 font-semibold mt-0.5">
+                            <span className="text-xs text-rose-600 dark:text-rose-400 font-semibold mt-0.5">
                               Due: {formatCurrency(t.balance)}
                             </span>
                           ) : (
-                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">
+                            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">
                               Cleared
                             </span>
                           )}
