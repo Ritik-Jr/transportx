@@ -13,7 +13,7 @@ import {
   Clock,
   Phone
 } from 'lucide-react';
-import { exportTripsToCsv, exportDatabaseToJson, isDummyRecord } from '../db';
+import { exportTripsToCsv, exportDatabaseToJson } from '../db';
 import CasinoCounter from './CasinoCounter';
 import Pagination from './Pagination';
 import PeriodDropdown, { PERIOD_OPTIONS } from './PeriodDropdown';
@@ -463,14 +463,7 @@ export default function Dashboard({
                           className="hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 transition cursor-pointer group"
                         >
                           <td className="py-3.5 px-3.5">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="font-mono font-bold text-zinc-900 dark:text-white block">{t.lrNo}</span>
-                              {isDummyRecord(t) && (
-                                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
-                                  Dummy
-                                </span>
-                              )}
-                            </div>
+                            <span className="font-mono font-bold text-zinc-900 dark:text-white block">{t.lrNo}</span>
                             <span className="text-[10px] text-zinc-400 mt-0.5 block">{t.date}</span>
                           </td>
                           <td className="py-3.5 px-3.5">
@@ -537,11 +530,6 @@ export default function Dashboard({
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-bold text-zinc-900 dark:text-white text-base">{t.lrNo}</span>
                           <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">• {t.date}</span>
-                          {isDummyRecord(t) && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
-                              Dummy
-                            </span>
-                          )}
                         </div>
                         <div>{getStatusBadge(t.paymentStatus)}</div>
                       </div>

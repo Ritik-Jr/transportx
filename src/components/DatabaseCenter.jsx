@@ -138,30 +138,20 @@ export default function DatabaseCenter({ trips = [], parties = [], onDatabaseRes
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
-              isSupabaseEnabled()
-                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/40'
-                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700'
-            }`}>
-              {isSupabaseEnabled() ? <Cloud className="w-5 h-5" /> : <Database className="w-5 h-5" />}
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/40">
+              <Cloud className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm">
-                  {isSupabaseEnabled() ? 'Supabase Cloud Database' : 'Localhost Development Database'}
+                  Supabase Cloud Database
                 </h3>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                  isSupabaseEnabled()
-                    ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
-                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700'
-                }`}>
-                  {isSupabaseEnabled() ? 'Production Cloud' : 'Local IndexedDB'}
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold border bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800">
+                  Cross-Device Sync
                 </span>
               </div>
               <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-[11px] sm:text-xs">
-                {isSupabaseEnabled()
-                  ? 'Active in production on https://znczyfkpcpkmhutlmenh.supabase.co with dual-redundant local cache.'
-                  : 'Operating in local offline mode on localhost. Cloud database is automatically active in production.'}
+                Connected to cloud database (<code>znczyfkpcpkmhutlmenh.supabase.co</code>). Every record created here is immediately visible across all devices.
               </p>
             </div>
           </div>
@@ -175,7 +165,7 @@ export default function DatabaseCenter({ trips = [], parties = [], onDatabaseRes
         </div>
       </div>
 
-      {/* Safety Notice Card */}
+      {/* Cloud Sync Notice Card */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xs">
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-200 dark:border-emerald-800/40">
@@ -183,14 +173,14 @@ export default function DatabaseCenter({ trips = [], parties = [], onDatabaseRes
           </div>
           <div className="text-xs sm:text-sm">
             <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm">
-              Your Data is Safely Saved on this Device
+              Real-time Cross-Device Cloud Storage
             </h3>
             <p className="text-zinc-600 dark:text-zinc-300 mt-1 leading-relaxed text-[11px] sm:text-xs">
-              All truck records, freight accounts, and party ledgers are automatically saved locally on this browser. 
-              Closing the window, restarting your device, or refreshing the page will <strong>never erase your data</strong>.
+              All truck records, freight accounts, and party ledgers are stored strictly in the Supabase cloud database. 
+              No dummy data is stored locally. Accessing the app on phone, laptop, or office desktop shows the exact same live data.
             </p>
             <p className="text-zinc-400 dark:text-zinc-500 mt-2 text-[10px] sm:text-[11px]">
-              Tip: Click <strong>Download Backup</strong> regularly to keep an offline file on your phone or laptop.
+              Tip: Click <strong>Download Backup</strong> regularly to save an offline JSON backup or export to Excel.
             </p>
           </div>
         </div>
@@ -207,11 +197,11 @@ export default function DatabaseCenter({ trips = [], parties = [], onDatabaseRes
             </div>
             <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm">Download Backup</h3>
             <p className="text-[11px] text-zinc-400 mt-1">
-              Saves a complete backup file containing all truck records, parties, and accounts.
+              Saves a complete JSON backup file containing all cloud truck records, parties, and accounts.
             </p>
           </div>
           <button
-            onClick={exportDatabaseToJson}
+            onClick={() => exportDatabaseToJson(trips, parties)}
             className="mt-4 w-full py-2.5 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-sm sm:text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
           >
             <Download className="w-4 h-4" />
@@ -227,7 +217,7 @@ export default function DatabaseCenter({ trips = [], parties = [], onDatabaseRes
             </div>
             <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm">Restore from Backup</h3>
             <p className="text-[11px] text-zinc-400 mt-1">
-              Upload your previously saved backup file to restore records on any device.
+              Upload your previously saved backup file to restore records directly to your cloud database.
             </p>
           </div>
           <div>
@@ -261,7 +251,7 @@ export default function DatabaseCenter({ trips = [], parties = [], onDatabaseRes
             </p>
           </div>
           <button
-            onClick={exportTripsToCsv}
+            onClick={() => exportTripsToCsv(trips)}
             className="mt-4 w-full py-2.5 sm:py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 rounded-xl text-sm sm:text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer border border-emerald-200 dark:border-emerald-800/50 active:scale-95"
           >
             <FileSpreadsheet className="w-4 h-4" />
