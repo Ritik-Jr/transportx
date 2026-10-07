@@ -213,27 +213,37 @@ export const DEFAULT_COMPANY_SETTINGS = {
 // Mirror key for emergency localStorage backup
 const LS_BACKUP_KEY = 'sai_transport_emergency_backup_v1';
 
-// Seed Database if empty
+// Key tracking if user/client has already initialized database (prevent dummy data from returning after deletion)
+export const SEED_FLAG_KEY = 'sai_transport_db_initialized_v2';
+
+// Seed Database if empty (runs ONLY on pristine first installation)
 export async function seedDatabaseIfEmpty() {
   try {
+    // If this device was already initialized, NEVER restore deleted dummy data on reload!
+    const hasInitialized = localStorage.getItem(SEED_FLAG_KEY) === 'true';
+    if (hasInitialized) {
+      return;
+    }
+
     const tripCount = await db.trips.count();
-    if (tripCount === 0) {
-      await db.trips.bulkAdd(INITIAL_TRIPS);
-    }
-
     const partyCount = await db.parties.count();
-    if (partyCount === 0) {
-      await db.parties.bulkAdd(INITIAL_PARTIES);
-    }
-
     const settingsCount = await db.settings.count();
+
+    // Ensure company settings exist
     if (settingsCount === 0) {
       for (const [key, value] of Object.entries(DEFAULT_COMPANY_SETTINGS)) {
         await db.settings.put({ key, value });
       }
     }
 
-    // Mirror to localStorage
+    // Only populate demo sample records on the very first pristine run
+    if (tripCount === 0 && partyCount === 0) {
+      await db.trips.bulkAdd(INITIAL_TRIPS);
+      await db.parties.bulkAdd(INITIAL_PARTIES);
+    }
+
+    // Mark as initialized permanently
+    localStorage.setItem(SEED_FLAG_KEY, 'true');
     await backupToLocalStorage();
   } catch (error) {
     console.error('Error seeding database:', error);
@@ -282,8 +292,11 @@ export async function fetchAppData() {
         let loadedTrips = (tripsRes.data || []).map(mapTripFromSupabase);
         let loadedParties = (partiesRes.data || []).map(mapPartyFromSupabase);
 
-        // If Supabase is empty, initialize with initial demo records
-        if (loadedTrips.length === 0 && loadedParties.length === 0) {
+        const hasInitialized = localStorage.getItem(SEED_FLAG_KEY) === 'true';
+        const hasSeededSetting = settingsRes.data?.some(s => s.key === 'has_seeded_initial_data');
+
+        // Only seed Supabase if NEVER initialized before
+        if (!hasInitialized && !hasSeededSetting && loadedTrips.length === 0 && loadedParties.length === 0) {
           try {
             const partyInserts = INITIAL_PARTIES.map(mapPartyToSupabase);
             const { data: pData } = await supabase.from('parties').insert(partyInserts).select();
@@ -293,14 +306,21 @@ export async function fetchAppData() {
             const { data: tData } = await supabase.from('trips').insert(tripInserts).select();
             if (tData) loadedTrips = tData.map(mapTripFromSupabase);
 
-            const settingsInserts = Object.entries(DEFAULT_COMPANY_SETTINGS).map(([key, value]) => ({ 
-              key, 
-              value: typeof value === 'object' ? JSON.stringify(value) : String(value) 
-            }));
+            const settingsInserts = [
+              ...Object.entries(DEFAULT_COMPANY_SETTINGS).map(([key, value]) => ({ 
+                key, 
+                value: typeof value === 'object' ? JSON.stringify(value) : String(value) 
+              })),
+              { key: 'has_seeded_initial_data', value: 'true' }
+            ];
             await supabase.from('settings').upsert(settingsInserts);
+            localStorage.setItem(SEED_FLAG_KEY, 'true');
           } catch (seedErr) {
             console.warn('Supabase auto-seed notice:', seedErr);
           }
+        } else {
+          // Already initialized - mark locally so it stays respected
+          localStorage.setItem(SEED_FLAG_KEY, 'true');
         }
 
         const settingsMap = { ...DEFAULT_COMPANY_SETTINGS };
@@ -393,6 +413,7 @@ export async function saveTripRecord(tripData) {
 }
 
 export async function deleteTripRecord(id) {
+  localStorage.setItem(SEED_FLAG_KEY, 'true');
   if (isSupabaseEnabled()) {
     try {
       await supabase.from('trips').delete().eq('id', id);
@@ -400,11 +421,16 @@ export async function deleteTripRecord(id) {
       console.warn('Supabase trip delete notice:', err);
     }
   }
+  const numericId = Number(id);
+  if (!isNaN(numericId)) {
+    await db.trips.delete(numericId);
+  }
   await db.trips.delete(id);
   await backupToLocalStorage();
 }
 
 export async function savePartyRecord(partyData) {
+  localStorage.setItem(SEED_FLAG_KEY, 'true');
   let savedParty = { ...partyData };
   if (isSupabaseEnabled()) {
     try {
@@ -439,12 +465,17 @@ export async function savePartyRecord(partyData) {
 }
 
 export async function deletePartyRecord(id) {
+  localStorage.setItem(SEED_FLAG_KEY, 'true');
   if (isSupabaseEnabled()) {
     try {
       await supabase.from('parties').delete().eq('id', id);
     } catch (err) {
       console.warn('Supabase party delete notice:', err);
     }
+  }
+  const numericId = Number(id);
+  if (!isNaN(numericId)) {
+    await db.parties.delete(numericId);
   }
   await db.parties.delete(id);
   await backupToLocalStorage();
@@ -470,10 +501,14 @@ export async function saveCompanySettings(newSettings) {
 }
 
 export async function clearAllDatabaseData() {
+  localStorage.setItem(SEED_FLAG_KEY, 'true');
   if (isSupabaseEnabled()) {
     try {
       await supabase.from('trips').delete().neq('id', 0);
       await supabase.from('parties').delete().neq('id', 0);
+      await supabase.from('settings').upsert([
+        { key: 'has_seeded_initial_data', value: 'true' }
+      ]);
     } catch (err) {
       console.warn('Supabase clear notice:', err);
     }
@@ -484,6 +519,7 @@ export async function clearAllDatabaseData() {
 }
 
 export async function resetDemoDatabaseData() {
+  localStorage.setItem(SEED_FLAG_KEY, 'true');
   if (isSupabaseEnabled()) {
     try {
       await supabase.from('trips').delete().neq('id', 0);
@@ -492,6 +528,9 @@ export async function resetDemoDatabaseData() {
       await supabase.from('parties').insert(partyInserts);
       const tripInserts = INITIAL_TRIPS.map(mapTripToSupabase);
       await supabase.from('trips').insert(tripInserts);
+      await supabase.from('settings').upsert([
+        { key: 'has_seeded_initial_data', value: 'true' }
+      ]);
     } catch (err) {
       console.warn('Supabase reset demo notice:', err);
     }

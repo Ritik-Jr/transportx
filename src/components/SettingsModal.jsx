@@ -315,26 +315,26 @@ export default function SettingsModal({
 
       {/* Demo / Reset */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 shadow-xs">
-        <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm mb-0.5">Sample Data</h3>
+        <h3 className="font-bold text-zinc-900 dark:text-white text-xs sm:text-sm mb-0.5">Fleet Records Management</h3>
         <p className="text-[11px] text-zinc-400 mb-2.5">
-          Load demo sample truck entries or reset records.
+          Permanently delete sample dummy records for your real business operations, or reload demo data whenever needed.
         </p>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={onResetData}
-            className="px-4 py-2.5 sm:py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-sm sm:text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer active:scale-95"
-          >
-            <RotateCcw className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-            <span>Load Demo</span>
-          </button>
-
           <button
             onClick={onClearAllData}
             className="px-4 py-2.5 sm:py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 rounded-xl text-sm sm:text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-rose-200 dark:border-rose-800/40 active:scale-95"
           >
             <Trash2 className="w-4 h-4" />
-            <span>Clear All</span>
+            <span>Delete All Dummy Data</span>
+          </button>
+
+          <button
+            onClick={onResetData}
+            className="px-4 py-2.5 sm:py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-xl text-sm sm:text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer active:scale-95"
+          >
+            <RotateCcw className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            <span>Reload Demo Data</span>
           </button>
         </div>
       </div>
