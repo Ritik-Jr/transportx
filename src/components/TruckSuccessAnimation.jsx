@@ -257,7 +257,7 @@ export default function TruckSuccessAnimation({
     const canonicalTheta = -54.75 * (Math.PI / 180); // Middle between front (+Z) and left (-X)
     const canonicalPitch = -2.81 * (Math.PI / 180);  // Lower angle facing slightly up (elevation ~2.8°)
 
-    const restingCamPos = new THREE.Vector3(
+    const _restingCamPos = new THREE.Vector3(
       restingTarget.x + canonicalDistance * Math.cos(canonicalPitch) * Math.sin(canonicalTheta),
       restingTarget.y + canonicalDistance * Math.sin(canonicalPitch),
       restingTarget.z + canonicalDistance * Math.cos(canonicalPitch) * Math.cos(canonicalTheta)

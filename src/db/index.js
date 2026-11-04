@@ -1,6 +1,5 @@
 import { 
   supabase, 
-  isSupabaseEnabled, 
   checkSupabaseSchema,
   mapTripFromSupabase, 
   mapTripToSupabase, 
@@ -11,7 +10,26 @@ import {
   isRlsError
 } from '../utils/supabase';
 
-export { SUPABASE_SCHEMA_SQL, SUPABASE_FIX_RLS_SQL, isRlsError };
+import {
+  isGoogleSheetsActive,
+  fetchGoogleSheetsData,
+  saveTripToGoogleSheets,
+  deleteTripFromGoogleSheets,
+  savePartyToGoogleSheets,
+  deletePartyFromGoogleSheets,
+  saveSettingsToGoogleSheets,
+  clearGoogleSheetsDatabase,
+  syncAllToGoogleSheets,
+  getDbProvider
+} from '../utils/googleSheets';
+
+export { 
+  SUPABASE_SCHEMA_SQL, 
+  SUPABASE_FIX_RLS_SQL, 
+  isRlsError,
+  isGoogleSheetsActive,
+  getDbProvider
+};
 
 // Cleanup any old local IndexedDB database and dummy localStorage flags from previous versions
 export async function purgeLocalBrowserStorage() {
@@ -46,12 +64,19 @@ export const DEFAULT_COMPANY_SETTINGS = {
 };
 
 /**
- * Fetch all records directly from Supabase Cloud Database.
+ * Fetch all records directly from active database (Google Sheets or Supabase).
  * No dummy data. No local storage data.
  */
 export async function fetchAppData() {
   await purgeLocalBrowserStorage();
 
+  // 1. Google Sheets Database Mode
+  if (isGoogleSheetsActive()) {
+    const gData = await fetchGoogleSheetsData();
+    return gData;
+  }
+
+  // 2. Supabase Cloud Database Mode
   const schemaCheck = await checkSupabaseSchema();
   if (schemaCheck.status === 'needs_schema') {
     return {
@@ -115,9 +140,13 @@ export async function fetchAppData() {
 }
 
 /**
- * Save trip directly to Supabase cloud database.
+ * Save trip directly to active database (Google Sheets or Supabase).
  */
 export async function saveTripRecord(tripData) {
+  if (isGoogleSheetsActive()) {
+    return await saveTripToGoogleSheets(tripData);
+  }
+
   const payload = mapTripToSupabase(tripData);
 
   if (tripData.id && typeof tripData.id === 'number') {
@@ -144,9 +173,13 @@ export async function saveTripRecord(tripData) {
 }
 
 /**
- * Delete trip directly from Supabase cloud database.
+ * Delete trip directly from active database (Google Sheets or Supabase).
  */
 export async function deleteTripRecord(id) {
+  if (isGoogleSheetsActive()) {
+    return await deleteTripFromGoogleSheets(id);
+  }
+
   const { error } = await supabase
     .from('trips')
     .delete()
@@ -157,9 +190,13 @@ export async function deleteTripRecord(id) {
 }
 
 /**
- * Save party directly to Supabase cloud database.
+ * Save party directly to active database (Google Sheets or Supabase).
  */
 export async function savePartyRecord(partyData) {
+  if (isGoogleSheetsActive()) {
+    return await savePartyToGoogleSheets(partyData);
+  }
+
   const payload = mapPartyToSupabase(partyData);
 
   if (partyData.id && typeof partyData.id === 'number') {
@@ -186,9 +223,13 @@ export async function savePartyRecord(partyData) {
 }
 
 /**
- * Delete party directly from Supabase cloud database.
+ * Delete party directly from active database (Google Sheets or Supabase).
  */
 export async function deletePartyRecord(id) {
+  if (isGoogleSheetsActive()) {
+    return await deletePartyFromGoogleSheets(id);
+  }
+
   const { error } = await supabase
     .from('parties')
     .delete()
@@ -199,9 +240,13 @@ export async function deletePartyRecord(id) {
 }
 
 /**
- * Save company settings directly to Supabase cloud database.
+ * Save company settings directly to active database (Google Sheets or Supabase).
  */
 export async function saveCompanySettings(newSettings) {
+  if (isGoogleSheetsActive()) {
+    return await saveSettingsToGoogleSheets(newSettings);
+  }
+
   const records = Object.entries(newSettings).map(([key, value]) => ({
     key,
     value: typeof value === 'object' ? JSON.stringify(value) : String(value)
@@ -216,9 +261,13 @@ export async function saveCompanySettings(newSettings) {
 }
 
 /**
- * Wipe all data directly from Supabase cloud database.
+ * Wipe all data directly from active database (Google Sheets or Supabase).
  */
 export async function clearAllDatabaseData() {
+  if (isGoogleSheetsActive()) {
+    return await clearGoogleSheetsDatabase();
+  }
+
   const { error: tErr } = await supabase.from('trips').delete().neq('id', 0);
   const { error: pErr } = await supabase.from('parties').delete().neq('id', 0);
   if (tErr) console.warn('Wipe trips error:', tErr);
@@ -324,7 +373,7 @@ export function exportDatabaseToJson(trips = [], parties = [], settings = DEFAUL
 }
 
 /**
- * Restore JSON records directly to Supabase cloud database.
+ * Restore JSON records directly to active database (Google Sheets or Supabase).
  */
 export async function restoreDatabaseFromJson(jsonString) {
   try {
@@ -332,6 +381,15 @@ export async function restoreDatabaseFromJson(jsonString) {
     const tripsData = parsed.data ? parsed.data.trips : parsed.trips;
     const partiesData = parsed.data ? parsed.data.parties : parsed.parties;
     const settingsData = parsed.data ? parsed.data.settings : parsed.settings;
+
+    if (isGoogleSheetsActive()) {
+      const res = await syncAllToGoogleSheets({
+        trips: tripsData || [],
+        parties: partiesData || [],
+        settings: settingsData || {}
+      });
+      return { success: true, count: res.countTrips || (tripsData ? tripsData.length : 0) };
+    }
 
     if (Array.isArray(partiesData) && partiesData.length > 0) {
       const pRows = partiesData.map(mapPartyToSupabase).map(p => { delete p.id; return p; });
@@ -349,7 +407,7 @@ export async function restoreDatabaseFromJson(jsonString) {
 
     return { success: true, count: tripsData ? tripsData.length : 0 };
   } catch (error) {
-    console.error('Failed to restore backup to Supabase:', error);
+    console.error('Failed to restore backup:', error);
     return { success: false, error: error.message };
   }
 }

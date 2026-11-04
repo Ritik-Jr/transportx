@@ -8,15 +8,15 @@ import {
 import confetti from 'canvas-confetti';
 
 export default function PaymentModal({ trip, isOpen, onClose, onSavePayment }) {
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMode, setPaymentMode] = useState('UPI / GPay / PhonePe');
+  const [paymentRef, setPaymentRef] = useState('');
+
   if (!isOpen || !trip) return null;
 
   const currentAmount = Number(trip.amount) || 0;
   const currentAdvance = Number(trip.advance) || 0;
   const currentBalance = Number(trip.balance) || Math.max(0, currentAmount - currentAdvance);
-
-  const [paymentAmount, setPaymentAmount] = useState('');
-  const [paymentMode, setPaymentMode] = useState('UPI / GPay / PhonePe');
-  const [paymentRef, setPaymentRef] = useState('');
 
   const numPayment = parseFloat(paymentAmount) || 0;
   const newAdvance = currentAdvance + numPayment;

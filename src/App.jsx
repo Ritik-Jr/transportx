@@ -7,7 +7,8 @@ import {
   deletePartyRecord, 
   saveCompanySettings, 
   clearAllDatabaseData,
-  DEFAULT_COMPANY_SETTINGS 
+  DEFAULT_COMPANY_SETTINGS,
+  isGoogleSheetsActive
 } from './db';
 import { 
   SUPABASE_SCHEMA_SQL,
@@ -256,8 +257,11 @@ export default function App() {
           alert('Unable to save entry. Please contact your system administrator.');
         }
       } else {
+        const isGSheet = isGoogleSheetsActive();
         alert(isAdminLoggedIn 
-          ? 'Database error: ' + error.message + '. Please ensure Supabase tables are created.'
+          ? (isGSheet 
+              ? 'Google Sheets error: ' + error.message + '. Please ensure your Web App URL in Settings is valid and deployed.'
+              : 'Database error: ' + error.message + '. Please ensure Supabase tables are created.')
           : 'Unable to save entry. Please check your internet connection.');
       }
       throw error;
@@ -436,7 +440,7 @@ export default function App() {
       />
 
       {/* Supabase Schema Notice Banner (Admin only: visible if tables are not yet created in Supabase) */}
-      {isAdminLoggedIn && dbMeta.status === 'needs_schema' && (
+      {isAdminLoggedIn && dbMeta.source === 'supabase' && dbMeta.status === 'needs_schema' && (
         <div className="bg-amber-500/15 border-b border-amber-500/30 px-4 py-2.5 text-xs text-amber-900 dark:text-amber-200 flex flex-wrap items-center justify-between gap-2 shadow-xs">
           <div className="flex items-center gap-2">
             <Database className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
@@ -466,7 +470,7 @@ export default function App() {
       )}
 
       {/* Supabase RLS Notice Banner (Admin only: visible when RLS is active and blocking inserts) */}
-      {isAdminLoggedIn && dbMeta.status === 'rls_blocked' && (
+      {isAdminLoggedIn && dbMeta.source === 'supabase' && dbMeta.status === 'rls_blocked' && (
         <div className="bg-rose-500/15 border-b border-rose-500/30 px-4 py-2.5 text-xs text-rose-900 dark:text-rose-200 flex flex-wrap items-center justify-between gap-2 shadow-xs">
           <div className="flex items-center gap-2">
             <ShieldAlert className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
@@ -495,6 +499,24 @@ export default function App() {
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>
+        </div>
+      )}
+
+      {/* Google Sheets Error Notice Banner */}
+      {dbMeta.source === 'google_sheets' && dbMeta.status === 'error' && (
+        <div className="bg-amber-500/15 border-b border-amber-500/30 px-4 py-2.5 text-xs text-amber-900 dark:text-amber-200 flex flex-wrap items-center justify-between gap-2 shadow-xs">
+          <div className="flex items-center gap-2">
+            <Database className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span>
+              <strong>Google Sheets Connection Issue:</strong> Unable to connect to your Google Sheet database. {dbMeta.error ? `(${dbMeta.error}) ` : ''}Please check your Web App URL in Database Settings.
+            </span>
+          </div>
+          <button
+            onClick={() => handleTabChange('settings')}
+            className="px-2.5 py-1 bg-amber-200 hover:bg-amber-300 dark:bg-amber-900 dark:hover:bg-amber-800 text-amber-900 dark:text-amber-100 rounded-lg font-bold text-[11px] flex items-center gap-1 cursor-pointer transition active:scale-95"
+          >
+            <span>Open Database Settings</span>
+          </button>
         </div>
       )}
 
@@ -580,7 +602,11 @@ export default function App() {
           <div className="flex items-center gap-3 text-[11px]">
             {isAdminLoggedIn && (
               <>
-                <span>Cloud Database (Supabase)</span>
+                <span>
+                  {dbMeta.source === 'google_sheets' 
+                    ? 'Database: Google Sheets (Private)' 
+                    : 'Cloud Database (Supabase)'}
+                </span>
                 <span>•</span>
               </>
             )}
