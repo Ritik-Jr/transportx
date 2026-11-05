@@ -407,11 +407,11 @@ export default function TripDetailsModal({
             <div className="flex items-center gap-1.5 shrink-0">
               <button
                 onClick={handleShareWhatsApp}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition cursor-pointer active:scale-95"
+                className="inline-flex items-center justify-center gap-1.5 w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition cursor-pointer active:scale-95 shadow-xs"
                 title="Share on WhatsApp"
               >
                 <Share2 className="w-3.5 h-3.5" />
-                <span>WhatsApp</span>
+                <span className="hidden sm:inline">WhatsApp</span>
               </button>
 
               <button
@@ -419,7 +419,7 @@ export default function TripDetailsModal({
                   onClose();
                   if (onEditTrip) onEditTrip(trip);
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-semibold transition cursor-pointer active:scale-95"
+                className="inline-flex items-center justify-center gap-1.5 w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-semibold transition cursor-pointer active:scale-95 border border-zinc-200 dark:border-zinc-700/60"
                 title="Edit Trip Details"
               >
                 <Edit3 className="w-3.5 h-3.5" />
@@ -428,7 +428,7 @@ export default function TripDetailsModal({
 
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-xl bg-zinc-200/70 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 flex items-center justify-center transition cursor-pointer"
+                className="w-8 h-8 rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 flex items-center justify-center transition cursor-pointer border border-zinc-200 dark:border-zinc-700/60 active:scale-95"
                 title="Close Modal"
               >
                 <X className="w-4 h-4" />
@@ -437,33 +437,35 @@ export default function TripDetailsModal({
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex items-center gap-1 bg-zinc-200/60 dark:bg-zinc-900 p-1 rounded-xl">
+          <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-xl border border-zinc-200/80 dark:border-zinc-800">
             <button
               type="button"
               onClick={() => setActiveTab('details')}
-              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 min-h-[36px] py-1.5 px-2 sm:px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeTab === 'details'
                   ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
               }`}
             >
-              <FileText className="w-3.5 h-3.5" />
-              <span>Trip Overview</span>
+              <FileText className="w-3.5 h-3.5 shrink-0" />
+              <span className="sm:hidden">Overview</span>
+              <span className="hidden sm:inline">Trip Overview</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab('transactions')}
-              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 min-h-[36px] py-1.5 px-2 sm:px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeTab === 'transactions'
                   ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
               }`}
             >
-              <Receipt className="w-3.5 h-3.5" />
-              <span>Transactions & Tally</span>
+              <Receipt className="w-3.5 h-3.5 shrink-0" />
+              <span className="sm:hidden">Tally</span>
+              <span className="hidden sm:inline">Transactions & Tally</span>
               {transactions.length > 0 && (
-                <span className="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200">
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold shrink-0">
                   {transactions.length}
                 </span>
               )}
@@ -472,14 +474,15 @@ export default function TripDetailsModal({
             <button
               type="button"
               onClick={() => setActiveTab('invoice')}
-              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 min-h-[36px] py-1.5 px-2 sm:px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
                 activeTab === 'invoice'
                   ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs'
                   : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
               }`}
             >
-              <Printer className="w-3.5 h-3.5" />
-              <span>Invoice / Bilty</span>
+              <Printer className="w-3.5 h-3.5 shrink-0" />
+              <span className="sm:hidden">Invoice</span>
+              <span className="hidden sm:inline">Invoice / Bilty</span>
             </button>
           </div>
         </div>
@@ -669,49 +672,54 @@ export default function TripDetailsModal({
               </div>
 
               {/* Action Toolbar */}
-              <div className="p-4 bg-zinc-100/60 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-2xl flex flex-wrap items-center justify-between gap-2.5">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setActiveTab('transactions')}
-                    className="px-3.5 py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add Expense / Payment</span>
-                  </button>
+              <div className="p-3 sm:p-4 bg-zinc-100/70 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-2xl">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center sm:justify-between gap-2 sm:gap-2.5">
+                  <div className="contents sm:flex sm:items-center sm:gap-2">
+                    <button
+                      onClick={() => setActiveTab('transactions')}
+                      className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span className="sm:hidden">+ Expense</span>
+                      <span className="hidden sm:inline">Add Expense / Payment</span>
+                    </button>
 
-                  <button
-                    onClick={() => setActiveTab('invoice')}
-                    className="px-3.5 py-2 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
-                  >
-                    <Printer className="w-3.5 h-3.5" />
-                    <span>View & Print Bilty</span>
-                  </button>
+                    <button
+                      onClick={() => setActiveTab('invoice')}
+                      className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 bg-zinc-200/90 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span className="sm:hidden">Print Bilty</span>
+                      <span className="hidden sm:inline">View & Print Bilty</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setIsExportModalOpen(true)}
-                    className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
-                    title="Export this trip to Excel"
-                  >
-                    <FileSpreadsheet className="w-3.5 h-3.5" />
-                    <span>Export Excel</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsExportModalOpen(true)}
+                      className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer"
+                      title="Export this trip to Excel"
+                    >
+                      <FileSpreadsheet className="w-3.5 h-3.5" />
+                      <span>Export Excel</span>
+                    </button>
+                  </div>
+
+                  {onDeleteTrip && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`Are you sure you want to delete LR #${trip.lrNo}?`)) {
+                          onClose();
+                          onDeleteTrip(trip.id || trip);
+                        }
+                      }}
+                      className="w-full sm:w-auto px-3.5 py-2.5 sm:py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-900/50 text-rose-600 hover:text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/40 sm:border-0 sm:bg-transparent sm:dark:bg-transparent rounded-xl text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition active:scale-95"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span className="sm:hidden">Delete Trip</span>
+                      <span className="hidden sm:inline">Delete Record</span>
+                    </button>
+                  )}
                 </div>
-
-                {onDeleteTrip && (
-                  <button
-                    onClick={() => {
-                      if (window.confirm(`Are you sure you want to delete LR #${trip.lrNo}?`)) {
-                        onClose();
-                        onDeleteTrip(trip.id || trip);
-                      }
-                    }}
-                    className="px-3 py-1.5 text-rose-600 hover:text-rose-700 dark:text-rose-400 text-xs font-semibold flex items-center gap-1 cursor-pointer transition hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Delete Record</span>
-                  </button>
-                )}
               </div>
 
             </div>
@@ -868,18 +876,18 @@ export default function TripDetailsModal({
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                  <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-end gap-2 pt-2 border-t border-zinc-200 dark:border-zinc-800">
                     <button
                       type="button"
                       onClick={() => setIsAddingTx(false)}
-                      className="px-3.5 py-1.5 rounded-xl border border-zinc-300 dark:border-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer"
+                      className="w-full sm:w-auto px-4 py-2 sm:py-1.5 rounded-xl border border-zinc-300 dark:border-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition cursor-pointer text-center"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={isLoggingTx}
-                      className="px-4 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold transition cursor-pointer shadow-xs active:scale-95 disabled:opacity-50 disabled:cursor-wait flex items-center gap-1.5"
+                      className="w-full sm:w-auto px-4 py-2 sm:py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold transition cursor-pointer shadow-xs active:scale-95 disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-1.5"
                     >
                       {isLoggingTx && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                       <span>{isLoggingTx ? 'Saving...' : 'Save Transaction'}</span>
@@ -887,7 +895,7 @@ export default function TripDetailsModal({
                   </div>
                 </form>
               ) : (
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <h4 className="font-bold text-xs uppercase text-zinc-500 tracking-wider">
                     Transaction & Expense Logs ({transactions.length})
                   </h4>
@@ -895,7 +903,7 @@ export default function TripDetailsModal({
                   <button
                     onClick={() => handleOpenAddTx('fuel')}
                     disabled={isLoggingTx}
-                    className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs transition active:scale-95 disabled:opacity-50"
+                    className="w-full sm:w-auto px-3.5 py-2 sm:py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition active:scale-95 disabled:opacity-50"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Transaction</span>
@@ -1020,18 +1028,18 @@ export default function TripDetailsModal({
             <div className="space-y-4">
               
               {/* Action Toolbar (no-print) */}
-              <div className="no-print p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl flex items-center justify-between gap-2">
+              <div className="no-print p-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2">
-                  <Printer className="w-4 h-4 text-zinc-500" />
+                  <Printer className="w-4 h-4 text-zinc-500 shrink-0" />
                   <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                     A4 Clean Printable Lorry Receipt
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
                   <button
                     onClick={handleShareWhatsApp}
-                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
+                    className="w-full sm:w-auto px-3.5 py-2 sm:py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
                   >
                     <Share2 className="w-3.5 h-3.5" />
                     <span>WhatsApp</span>
@@ -1039,7 +1047,7 @@ export default function TripDetailsModal({
 
                   <button
                     onClick={handlePrint}
-                    className="px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
+                    className="w-full sm:w-auto px-4 py-2 sm:py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs"
                   >
                     <Printer className="w-3.5 h-3.5" />
                     <span>Print Invoice</span>
@@ -1050,7 +1058,7 @@ export default function TripDetailsModal({
               {/* Printable Bilty Paper Container */}
               <div 
                 id="printable-bilty"
-                className="bg-white text-zinc-950 p-6 sm:p-8 rounded-2xl border border-zinc-200 print:border-none print:p-0 print:m-0 font-sans shadow-xs"
+                className="bg-white text-zinc-950 p-3.5 sm:p-8 rounded-2xl border border-zinc-200 print:border-none print:p-0 print:m-0 font-sans shadow-xs"
               >
                 
                 {/* 1. Header & Transporter Details */}
@@ -1072,10 +1080,15 @@ export default function TripDetailsModal({
                   </div>
 
                   {/* LR Badge box */}
-                  <div className="p-3 bg-zinc-100 border border-zinc-300 rounded-xl text-right sm:min-w-[160px] self-start">
-                    <div className="text-[10px] font-bold text-zinc-500 uppercase">LR / Bilty No.</div>
-                    <div className="text-lg sm:text-xl font-black font-mono text-zinc-950">{trip.lrNo}</div>
-                    <div className="text-xs font-semibold text-zinc-600 mt-0.5">Date: {formatDate(trip.date)}</div>
+                  <div className="p-2.5 sm:p-3 bg-zinc-100 border border-zinc-300 rounded-xl w-full sm:w-auto flex sm:block items-center justify-between sm:text-right">
+                    <div className="text-left sm:text-right">
+                      <div className="text-[10px] font-bold text-zinc-500 uppercase">LR / Bilty No.</div>
+                      <div className="text-xs font-semibold text-zinc-600 mt-0.5 sm:hidden">Date: {formatDate(trip.date)}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-base sm:text-xl font-black font-mono text-zinc-950">{trip.lrNo}</div>
+                      <div className="text-xs font-semibold text-zinc-600 mt-0.5 hidden sm:block">Date: {formatDate(trip.date)}</div>
+                    </div>
                   </div>
                 </div>
 
@@ -1117,31 +1130,44 @@ export default function TripDetailsModal({
                 </div>
 
                 {/* 4. Goods Description Table */}
-                <div className="border border-zinc-200 rounded-xl overflow-hidden mb-4">
-                  <table className="w-full text-left text-xs">
+                <div className="border border-zinc-200 rounded-xl overflow-x-auto print:overflow-visible mb-4">
+                  <table className="w-full min-w-[340px] sm:min-w-0 text-left text-xs">
                     <thead>
                       <tr className="bg-zinc-100 text-zinc-700 font-bold border-b border-zinc-200 uppercase text-[10px]">
-                        <th className="py-2.5 px-3">Description of Goods</th>
-                        <th className="py-2.5 px-3">Weight / Quantity</th>
-                        <th className="py-2.5 px-3 text-right">Freight Rate</th>
-                        <th className="py-2.5 px-3 text-right">Total (₹)</th>
+                        <th className="py-2.5 px-2.5 sm:px-3">
+                          <span className="sm:hidden">Description</span>
+                          <span className="hidden sm:inline">Description of Goods</span>
+                        </th>
+                        <th className="py-2.5 px-2 sm:px-3">
+                          <span className="sm:hidden">Weight/Qty</span>
+                          <span className="hidden sm:inline">Weight / Quantity</span>
+                        </th>
+                        <th className="py-2.5 px-2 sm:px-3 text-right">
+                          <span className="sm:hidden">Rate</span>
+                          <span className="hidden sm:inline">Freight Rate</span>
+                        </th>
+                        <th className="py-2.5 px-2.5 sm:px-3 text-right">
+                          <span>Total (₹)</span>
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td className="py-3 px-3 font-medium text-zinc-950">
+                        <td className="py-2.5 sm:py-3 px-2.5 sm:px-3 font-medium text-zinc-950">
                           <div>{trip.material || 'General Industrial Cargo'}</div>
                           {trip.height && (
                             <div className="text-[10px] text-zinc-500 font-normal mt-0.5">
-                              Cargo Height: <strong className="text-zinc-700">{trip.height}</strong>
+                              Height: <strong className="text-zinc-700">{trip.height}</strong>
                             </div>
                           )}
                         </td>
-                        <td className="py-3 px-3 font-semibold text-zinc-800">
-                          {trip.weight || 'Full Truck Load'}
+                        <td className="py-2.5 sm:py-3 px-2 sm:px-3 font-semibold text-zinc-800 whitespace-nowrap">
+                          {trip.weight || 'Full Load'}
                         </td>
-                        <td className="py-3 px-3 text-right text-zinc-600">Lumpsum</td>
-                        <td className="py-3 px-3 text-right font-mono font-bold text-zinc-950">
+                        <td className="py-2.5 sm:py-3 px-2 sm:px-3 text-right text-zinc-600 whitespace-nowrap">
+                          Lumpsum
+                        </td>
+                        <td className="py-2.5 sm:py-3 px-2.5 sm:px-3 text-right font-mono font-bold text-zinc-950 whitespace-nowrap">
                           {formatCurrency(trip.amount)}
                         </td>
                       </tr>
@@ -1160,7 +1186,7 @@ export default function TripDetailsModal({
                     </p>
                   </div>
 
-                  <div className="sm:w-64 space-y-1.5 p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl">
+                  <div className="w-full sm:w-64 space-y-1.5 p-3.5 bg-zinc-50 border border-zinc-200 rounded-xl">
                     <div className="flex justify-between font-semibold text-zinc-700">
                       <span>1. Total Freight:</span>
                       <span className="font-mono font-bold text-zinc-950">{formatCurrency(tally.freight)}</span>
@@ -1186,14 +1212,14 @@ export default function TripDetailsModal({
                 </div>
 
                 {/* 6. Signature Footers */}
-                <div className="grid grid-cols-3 gap-4 pt-10 text-center text-xs">
+                <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-8 sm:pt-10 text-center text-[10px] sm:text-xs">
                   <div className="border-t border-zinc-400 pt-2 font-semibold text-zinc-600">
                     Consignor Signature
                   </div>
                   <div className="border-t border-zinc-400 pt-2 font-semibold text-zinc-600">
                     Driver Signature
                   </div>
-                  <div className="border-t border-zinc-400 pt-2 font-bold text-zinc-950">
+                  <div className="border-t border-zinc-400 pt-2 font-bold text-zinc-950 truncate">
                     For {company.companyName || 'SAI TRANSPORT'}
                   </div>
                 </div>
