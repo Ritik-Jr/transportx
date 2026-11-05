@@ -629,6 +629,11 @@ export default function TripDetailsModal({
                     <div className="text-xs text-zinc-500">
                       Weight: <strong className="text-zinc-800 dark:text-zinc-200">{trip.weight || 'Full Truck Load'}</strong>
                     </div>
+                    {trip.height && (
+                      <div className="text-xs text-zinc-500">
+                        Height: <strong className="text-zinc-800 dark:text-zinc-200">{trip.height}</strong>
+                      </div>
+                    )}
                     <div className="text-xs text-zinc-500">
                       Delivery: <strong className="text-zinc-800 dark:text-zinc-200">{trip.deliveryStatus || 'Booked'}</strong>
                     </div>
@@ -1080,7 +1085,12 @@ export default function TripDetailsModal({
                     <tbody>
                       <tr>
                         <td className="py-3 px-3 font-medium text-zinc-950">
-                          {trip.material || 'General Industrial Cargo'}
+                          <div>{trip.material || 'General Industrial Cargo'}</div>
+                          {trip.height && (
+                            <div className="text-[10px] text-zinc-500 font-normal mt-0.5">
+                              Cargo Height: <strong className="text-zinc-700">{trip.height}</strong>
+                            </div>
+                          )}
                         </td>
                         <td className="py-3 px-3 font-semibold text-zinc-800">
                           {trip.weight || 'Full Truck Load'}

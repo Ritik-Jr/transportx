@@ -174,6 +174,7 @@ function getTrips(ss) {
 
     var rawRemarks = String(row[20] || '');
     var commission = 0;
+    var height = '';
     var transactions = [];
     if (rawRemarks.indexOf('<!--TX_META:') !== -1) {
       var match = rawRemarks.match(/<!--TX_META:([\s\S]*?)-->/);
@@ -181,6 +182,7 @@ function getTrips(ss) {
         try {
           var meta = JSON.parse(match[1]);
           if (meta.commission) commission = Number(meta.commission) || 0;
+          if (meta.height) height = meta.height;
           if (meta.transactions && Array.isArray(meta.transactions)) transactions = meta.transactions;
         } catch(e) {}
         rawRemarks = rawRemarks.replace(/<!--TX_META:[\s\S]*?-->/g, '').trim();
@@ -201,6 +203,7 @@ function getTrips(ss) {
       driverMobile: String(row[10] || ''),
       material: String(row[11] || ''),
       weight: String(row[12] || ''),
+      height: height,
       amount: Number(row[13]) || 0,
       advance: Number(row[14]) || 0,
       balance: Number(row[15]) || 0,

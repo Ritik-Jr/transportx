@@ -169,6 +169,7 @@ export default function TripList({
         const lr = (trip.lrNo || '').toLowerCase();
         const cleanLr = cleanAlphaNum(trip.lrNo);
         const mat = (trip.material || '').toLowerCase();
+        const height = (trip.height || '').toLowerCase();
         const remarks = (trip.remarks || '').toLowerCase();
         const vehicleType = (trip.vehicleType || '').toLowerCase();
 
@@ -186,6 +187,7 @@ export default function TripList({
           lr.includes(query) ||
           (cleanQuery && cleanLr.includes(cleanQuery)) ||
           mat.includes(query) ||
+          height.includes(query) ||
           remarks.includes(query) ||
           vehicleType.includes(query)
         );
@@ -650,10 +652,11 @@ export default function TripList({
                     <span className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">{trip.fromCity} ➔ {trip.toCity}</span>
                   </div>
 
-                  {trip.material && (
+                  {(trip.material || trip.height) && (
                     <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                      Cargo: <span className="text-zinc-700 dark:text-zinc-300 font-medium">{trip.material}</span>
+                      Cargo: <span className="text-zinc-700 dark:text-zinc-300 font-medium">{trip.material || 'General'}</span>
                       {trip.weight && ` (${trip.weight})`}
+                      {trip.height && ` • H: ${trip.height}`}
                     </div>
                   )}
 

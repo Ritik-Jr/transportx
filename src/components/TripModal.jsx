@@ -92,6 +92,7 @@ export default function TripModal({
     date: new Date().toISOString().split('T')[0],
     material: '',
     weight: '',
+    height: '',
     driverName: '',
     driverMobile: '',
     amount: '',
@@ -158,6 +159,7 @@ export default function TripModal({
         setFormData({
           ...editingTrip,
           vehicleType: normalizeVehicleType(editingTrip.vehicleType),
+          height: editingTrip.height || '',
           amount: String(editingTrip.amount || ''),
           advance: String(editingTrip.advance || '0'),
           balance: String(editingTrip.balance || '0'),
@@ -190,6 +192,7 @@ export default function TripModal({
           date: new Date().toISOString().split('T')[0],
           material: '',
           weight: '',
+          height: '',
           driverName: '',
           driverMobile: '',
           amount: '',
@@ -427,6 +430,7 @@ export default function TripModal({
     const payload = {
       ...formData,
       lrNo: enteredLr,
+      height: (formData.height || '').trim(),
       amount: parseFloat(formData.amount) || 0,
       advance: parseFloat(formData.advance) || 0,
       balance: parseFloat(formData.balance) || 0,
@@ -1062,7 +1066,7 @@ export default function TripModal({
               {/* Step 4: Freight (No Expense Data) */}
               {currentStep === 4 && (
                 <div className="space-y-4 animate-in fade-in duration-150">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full min-w-0">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full min-w-0">
                     <div className="w-full min-w-0">
                       <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
                         Material / Cargo Description
@@ -1085,6 +1089,19 @@ export default function TripModal({
                         value={formData.weight}
                         onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
                         placeholder="e.g. 24 MT or 500 Bags"
+                        className="w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
+                      />
+                    </div>
+
+                    <div className="w-full min-w-0">
+                      <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                        Cargo Height
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.height}
+                        onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                        placeholder="e.g. 8.5 ft / 10 ft / 3.2 m"
                         className="w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
                       />
                     </div>

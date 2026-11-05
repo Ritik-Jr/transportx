@@ -166,7 +166,12 @@ export default function BiltyPrinter({ trip, company = {}, onClose }) {
                 <tbody>
                   <tr>
                     <td className="py-2 font-medium text-zinc-900">
-                      {trip.material || 'General Freight Goods'}
+                      <div>{trip.material || 'General Freight Goods'}</div>
+                      {trip.height && (
+                        <div className="text-[10px] text-zinc-500 font-normal mt-0.5">
+                          Cargo Height: <span className="font-semibold text-zinc-700">{trip.height}</span>
+                        </div>
+                      )}
                     </td>
                     <td className="py-2 font-medium text-zinc-800">
                       {trip.weight || 'Full Truck Load (FTL)'}

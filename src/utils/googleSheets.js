@@ -237,6 +237,7 @@ export async function fetchGoogleSheetsData() {
     const normalizedTrips = (res.trips || []).map(t => {
       let remarks = t.remarks || '';
       let commission = Number(t.commission) || 0;
+      let height = t.height || '';
       let transactions = Array.isArray(t.transactions) ? t.transactions : [];
 
       if (remarks.includes('<!--TX_META:')) {
@@ -246,6 +247,9 @@ export async function fetchGoogleSheetsData() {
             const meta = JSON.parse(match[1]);
             if (meta.commission !== undefined && !commission) {
               commission = Number(meta.commission) || 0;
+            }
+            if (meta.height && !height) {
+              height = meta.height;
             }
             if (Array.isArray(meta.transactions) && transactions.length === 0) {
               transactions = meta.transactions;
@@ -257,6 +261,7 @@ export async function fetchGoogleSheetsData() {
 
       return {
         ...t,
+        height,
         commission,
         transactions,
         remarks
@@ -291,6 +296,7 @@ export async function saveTripToGoogleSheets(tripData) {
   let remarksText = (tripData.remarks || '').replace(/<!--TX_META:[\s\S]*?-->/g, '').trim();
   const meta = {
     commission: Number(tripData.commission) || 0,
+    height: tripData.height || '',
     transactions: Array.isArray(tripData.transactions) ? tripData.transactions : []
   };
   const combinedRemarks = remarksText 
@@ -299,6 +305,7 @@ export async function saveTripToGoogleSheets(tripData) {
 
   const payload = {
     ...tripData,
+    height: tripData.height || '',
     commission: Number(tripData.commission) || 0,
     transactions: Array.isArray(tripData.transactions) ? tripData.transactions : [],
     remarks: combinedRemarks
@@ -307,6 +314,7 @@ export async function saveTripToGoogleSheets(tripData) {
   const res = await callAppsScript('saveTrip', { trip: payload });
   return {
     ...(res.trip || tripData),
+    height: tripData.height || '',
     commission: Number(tripData.commission) || 0,
     transactions: Array.isArray(tripData.transactions) ? tripData.transactions : [],
     remarks: remarksText
