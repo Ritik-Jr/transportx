@@ -11,11 +11,13 @@ import {
   Edit3, 
   Trash2, 
   X,
-  Printer
+  Printer,
+  FileSpreadsheet
 } from 'lucide-react';
 import Pagination from './Pagination';
 import { formatPartyReminderWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
 import { formatDate } from '../utils/dateFormatter';
+import ExcelExportModal from './ExcelExportModal';
 
 export default function PartyLedger({ 
   parties = [], 
@@ -31,6 +33,7 @@ export default function PartyLedger({
     return localStorage.getItem('sai_parties_sort') || 'balance-desc';
   });
   const [selectedPartyForStatement, setSelectedPartyForStatement] = useState(null);
+  const [exportModalParty, setExportModalParty] = useState(null);
   const [partyModalOpen, setPartyModalOpen] = useState(false);
   const [editingParty, setEditingParty] = useState(null);
   const [currentPartyPage, setCurrentPartyPage] = useState(() => {
@@ -232,13 +235,25 @@ export default function PartyLedger({
           </p>
         </div>
 
-        <button
-          onClick={handleOpenAdd}
-          className="px-4 py-2 sm:px-4 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95 self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Party</span>
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          <button
+            type="button"
+            onClick={() => setExportModalParty('ALL')}
+            className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95"
+            title="Download Excel Report for Parties & Trips"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span>Export Excel</span>
+          </button>
+
+          <button
+            onClick={handleOpenAdd}
+            className="px-4 py-2 sm:px-4 sm:py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Party</span>
+          </button>
+        </div>
       </div>
 
       {/* Search & Sort Bar */}
@@ -457,6 +472,15 @@ export default function PartyLedger({
                 </p>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setExportModalParty(selectedPartyForStatement.name)}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition active:scale-95"
+                  title="Download Excel for this party"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span>Excel</span>
+                </button>
                 {selectedPartyForStatement.phone && (
                   <a
                     href={`tel:${selectedPartyForStatement.phone.replace(/[^\d+]/g, '')}`}
@@ -790,6 +814,15 @@ export default function PartyLedger({
           </div>
         </div>
       )}
+
+      {/* Excel Export Modal */}
+      <ExcelExportModal
+        isOpen={Boolean(exportModalParty)}
+        onClose={() => setExportModalParty(null)}
+        trips={trips}
+        parties={parties}
+        defaultParty={exportModalParty && exportModalParty !== 'ALL' ? exportModalParty : null}
+      />
 
     </div>
   );

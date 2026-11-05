@@ -15,11 +15,13 @@ import {
   LayoutGrid,
   List,
   Phone,
-  ChevronDown
+  ChevronDown,
+  FileSpreadsheet
 } from 'lucide-react';
 import Pagination from './Pagination';
 import { formatTripWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
 import { formatDate } from '../utils/dateFormatter';
+import ExcelExportModal from './ExcelExportModal';
 
 const STATUS_OPTIONS = [
   { id: 'ALL', label: 'All Status', shortLabel: 'All', icon: ArrowUpDown, color: 'text-zinc-400' },
@@ -82,6 +84,27 @@ export default function TripList({
   const [pageSize, setPageSize] = useState(() => {
     return Number(localStorage.getItem('sai_trips_pageSize')) || 10;
   });
+
+  // Excel Export and Row Selection state
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [selectedTripIds, setSelectedTripIds] = useState([]);
+
+  const toggleTripSelection = (tripId) => {
+    const idStr = String(tripId);
+    setSelectedTripIds(prev => 
+      prev.includes(idStr) ? prev.filter(id => id !== idStr) : [...prev, idStr]
+    );
+  };
+
+  const toggleSelectAllCurrentPage = () => {
+    const pageTripIds = paginatedTrips.map(t => String(t.id || t.lrNo));
+    const allSelected = pageTripIds.length > 0 && pageTripIds.every(id => selectedTripIds.includes(id));
+    if (allSelected) {
+      setSelectedTripIds(prev => prev.filter(id => !pageTripIds.includes(id)));
+    } else {
+      setSelectedTripIds(prev => Array.from(new Set([...prev, ...pageTripIds])));
+    }
+  };
 
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [isFormatDropdownOpen, setIsFormatDropdownOpen] = useState(false);
@@ -276,7 +299,22 @@ export default function TripList({
           </p>
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          <button
+            type="button"
+            onClick={() => setIsExportModalOpen(true)}
+            className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95"
+            title="Download Excel spreadsheet report"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span>Export Excel</span>
+            {selectedTripIds.length > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-600 text-white font-bold">
+                {selectedTripIds.length}
+              </span>
+            )}
+          </button>
+
           <button
             onClick={onNewTrip}
             className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-xs transition cursor-pointer active:scale-95"
@@ -286,6 +324,33 @@ export default function TripList({
           </button>
         </div>
       </div>
+
+      {/* Selected Trips Action Banner */}
+      {selectedTripIds.length > 0 && (
+        <div className="p-3 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 rounded-2xl flex items-center justify-between gap-3 shadow-md animate-in fade-in slide-in-from-top-1 duration-150">
+          <div className="flex items-center gap-2 text-xs font-semibold">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 dark:text-emerald-600" />
+            <span>{selectedTripIds.length} trip{selectedTripIds.length > 1 ? 's' : ''} selected</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsExportModalOpen(true)}
+              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer active:scale-95 transition shadow-xs"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>Export Selected to Excel</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedTripIds([])}
+              className="px-2.5 py-1.5 text-xs text-zinc-400 hover:text-white dark:hover:text-zinc-900 font-medium cursor-pointer"
+            >
+              Deselect All
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Filter and Search Bar - All in one clean line */}
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-2.5 sm:p-3 shadow-xs">
@@ -439,6 +504,15 @@ export default function TripList({
               <table className="w-full min-w-[880px] text-left text-xs whitespace-nowrap">
                 <thead>
                   <tr className="bg-zinc-50 dark:bg-zinc-950 text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-800 text-[11px] uppercase tracking-wider font-semibold">
+                    <th className="py-3 px-3 w-9 text-center">
+                      <input
+                        type="checkbox"
+                        checked={paginatedTrips.length > 0 && paginatedTrips.every(t => selectedTripIds.includes(String(t.id || t.lrNo)))}
+                        onChange={toggleSelectAllCurrentPage}
+                        className="w-3.5 h-3.5 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white cursor-pointer accent-emerald-600"
+                        title="Select / Deselect all on this page"
+                      />
+                    </th>
                     <th className="py-3 px-4">
                       <button 
                         onClick={() => toggleSort('date')} 
@@ -469,8 +543,20 @@ export default function TripList({
                     <tr 
                       key={trip.id || trip.lrNo}
                       onClick={() => (onViewTrip ? onViewTrip(trip) : onViewBilty(trip))}
-                      className="hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 transition cursor-pointer group"
+                      className={`hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 transition cursor-pointer group ${
+                        selectedTripIds.includes(String(trip.id || trip.lrNo)) ? 'bg-emerald-50/40 dark:bg-emerald-950/20' : ''
+                      }`}
                     >
+                      {/* Selection Checkbox */}
+                      <td className="py-3.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedTripIds.includes(String(trip.id || trip.lrNo))}
+                          onChange={() => toggleTripSelection(trip.id || trip.lrNo)}
+                          className="w-3.5 h-3.5 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white cursor-pointer accent-emerald-600"
+                        />
+                      </td>
+
                       {/* LR & Date */}
                       <td className="py-3.5 px-4">
                         <span className="font-mono font-bold text-zinc-900 dark:text-white block text-xs">
@@ -633,11 +719,24 @@ export default function TripList({
               <div
                 key={trip.id || trip.lrNo}
                 onClick={() => (onViewTrip ? onViewTrip(trip) : onViewBilty(trip))}
-                className="bg-white hover:bg-zinc-50/80 dark:bg-zinc-900 dark:hover:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-xs cursor-pointer transition active:scale-[0.99]"
+                className={`bg-white hover:bg-zinc-50/80 dark:bg-zinc-900 dark:hover:bg-zinc-800/60 border rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-xs cursor-pointer transition active:scale-[0.99] ${
+                  selectedTripIds.includes(String(trip.id || trip.lrNo))
+                    ? 'border-emerald-500 dark:border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20'
+                    : 'border-zinc-200 dark:border-zinc-800'
+                }`}
               >
-                {/* Row 1: LR, Date & Status */}
+                {/* Row 1: Checkbox, LR, Date & Status */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedTripIds.includes(String(trip.id || trip.lrNo))}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        toggleTripSelection(trip.id || trip.lrNo);
+                      }}
+                      className="w-3.5 h-3.5 rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-white cursor-pointer accent-emerald-600"
+                    />
                     <span className="font-mono font-bold text-zinc-900 dark:text-white text-base">{trip.lrNo}</span>
                     <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">• {formatDate(trip.date)}</span>
                   </div>
@@ -823,6 +922,15 @@ export default function TripList({
           </div>
         </>
       )}
+
+      {/* Excel Export Modal */}
+      <ExcelExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        trips={trips}
+        parties={parties}
+        selectedTripIds={selectedTripIds}
+      />
 
     </div>
   );

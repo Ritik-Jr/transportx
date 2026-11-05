@@ -22,10 +22,12 @@ import {
   TrendingUp,
   Copy,
   Check,
-  Loader2
+  Loader2,
+  FileSpreadsheet
 } from 'lucide-react';
 import { formatTripWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
 import { formatDate } from '../utils/dateFormatter';
+import ExcelExportModal from './ExcelExportModal';
 
 const TRANSACTION_CATEGORIES = [
   { id: 'customer_payment', label: 'Party Payment (Received)', type: 'payment', icon: Coins, color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800' },
@@ -74,6 +76,7 @@ export default function TripDetailsModal({
   });
   const [txError, setTxError] = useState('');
   const [isLoggingTx, setIsLoggingTx] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Keep active tab in sync when opening directly to invoice or details
   React.useEffect(() => {
@@ -683,6 +686,16 @@ export default function TripDetailsModal({
                     <Printer className="w-3.5 h-3.5" />
                     <span>View & Print Bilty</span>
                   </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsExportModalOpen(true)}
+                    className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                    title="Export this trip to Excel"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                    <span>Export Excel</span>
+                  </button>
                 </div>
 
                 {onDeleteTrip && (
@@ -1193,6 +1206,15 @@ export default function TripDetailsModal({
         </div>
 
       </div>
+
+      {/* Excel Export Modal for this trip */}
+      <ExcelExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        trips={[trip]}
+        parties={parties}
+        selectedTripIds={[trip.id || trip.lrNo]}
+      />
 
     </div>
   );

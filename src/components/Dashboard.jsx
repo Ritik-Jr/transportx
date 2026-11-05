@@ -9,12 +9,14 @@ import {
   ChevronRight,
   Clock,
   Phone,
-  Search
+  Search,
+  FileSpreadsheet
 } from 'lucide-react';
 import CasinoCounter from './CasinoCounter';
 import Pagination from './Pagination';
 import PeriodDropdown, { PERIOD_OPTIONS } from './PeriodDropdown';
 import { formatDate } from '../utils/dateFormatter';
+import ExcelExportModal from './ExcelExportModal';
 
 export default function Dashboard({ 
   trips = [], 
@@ -43,6 +45,7 @@ export default function Dashboard({
   const [filterPeriod, setFilterPeriod] = useState(() => {
     return localStorage.getItem('sai_dashboard_period') || 'today';
   });
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const [recentTripsPage, setRecentTripsPage] = useState(() => {
     return Number(localStorage.getItem('sai_dashboard_trips_page')) || 1;
@@ -482,6 +485,16 @@ export default function Dashboard({
                 </div>
 
                 <button
+                  type="button"
+                  onClick={() => setIsExportModalOpen(true)}
+                  className="text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center gap-1 font-semibold shrink-0 cursor-pointer px-2 py-1 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition"
+                  title="Download Excel Report"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Export Excel</span>
+                </button>
+
+                <button
                   onClick={() => onNavigateTab('trips')}
                   className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-white flex items-center gap-0.5 cursor-pointer font-medium shrink-0"
                 >
@@ -666,6 +679,14 @@ export default function Dashboard({
         </div>
 
       </div>
+
+      {/* Excel Export Modal */}
+      <ExcelExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        trips={trips}
+        parties={parties}
+      />
 
     </div>
   );
