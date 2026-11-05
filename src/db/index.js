@@ -300,31 +300,41 @@ export function exportTripsToCsv(trips = []) {
     'Total Amount (₹)',
     'Advance Paid (₹)',
     'Balance Due (₹)',
+    'Commission (₹)',
+    'Total Expenses (₹)',
     'Payment Status',
     'Delivery Status',
     'Remarks'
   ];
 
-  const rows = trips.map(t => [
-    t.lrNo || '',
-    t.date || '',
-    `"${(t.partyName || '').replace(/"/g, '""')}"`,
-    t.partyPhone || '',
-    t.vehicleNo || '',
-    t.vehicleType || '',
-    `"${(t.fromCity || '').replace(/"/g, '""')}"`,
-    `"${(t.toCity || '').replace(/"/g, '""')}"`,
-    `"${(t.driverName || '').replace(/"/g, '""')}"`,
-    t.driverMobile || '',
-    `"${(t.material || '').replace(/"/g, '""')}"`,
-    t.weight || '',
-    t.amount || 0,
-    t.advance || 0,
-    t.balance || 0,
-    t.paymentStatus || '',
-    t.deliveryStatus || '',
-    `"${(t.remarks || '').replace(/"/g, '""')}"`
-  ]);
+  const rows = trips.map(t => {
+    const expenses = Array.isArray(t.transactions)
+      ? t.transactions.filter(x => x.type === 'expense').reduce((sum, x) => sum + (Number(x.amount) || 0), 0)
+      : 0;
+
+    return [
+      t.lrNo || '',
+      t.date || '',
+      `"${(t.partyName || '').replace(/"/g, '""')}"`,
+      t.partyPhone || '',
+      t.vehicleNo || '',
+      t.vehicleType || '',
+      `"${(t.fromCity || '').replace(/"/g, '""')}"`,
+      `"${(t.toCity || '').replace(/"/g, '""')}"`,
+      `"${(t.driverName || '').replace(/"/g, '""')}"`,
+      t.driverMobile || '',
+      `"${(t.material || '').replace(/"/g, '""')}"`,
+      t.weight || '',
+      t.amount || 0,
+      t.advance || 0,
+      t.balance || 0,
+      t.commission || 0,
+      expenses,
+      t.paymentStatus || '',
+      t.deliveryStatus || '',
+      `"${(t.remarks || '').replace(/"/g, '""')}"`
+    ];
+  });
 
   const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

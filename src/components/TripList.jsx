@@ -40,6 +40,7 @@ export default function TripList({
   onEditTrip, 
   onDeleteTrip, 
   onViewBilty, 
+  onViewTrip,
   onRecordPayment 
 }) {
   const cleanPhone = (phone) => {
@@ -143,6 +144,8 @@ export default function TripList({
   const CurrentFormatIcon = currentFormatOption.icon;
 
   const filteredTrips = useMemo(() => {
+    const cleanAlphaNum = (str) => String(str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
     return trips.filter(trip => {
       if (statusFilter === 'PAID' && trip.paymentStatus !== 'Paid') return false;
       if (statusFilter === 'PARTIAL' && trip.paymentStatus !== 'Partial') return false;
@@ -150,25 +153,41 @@ export default function TripList({
       if (statusFilter === 'IN_TRANSIT' && trip.deliveryStatus !== 'In Transit') return false;
 
       if (searchTerm.trim()) {
-        const query = searchTerm.toLowerCase();
+        const query = searchTerm.toLowerCase().trim();
+        const cleanQuery = cleanAlphaNum(searchTerm);
+
         const party = (trip.partyName || '').toLowerCase();
         const veh = (trip.vehicleNo || '').toLowerCase();
+        const cleanVeh = cleanAlphaNum(trip.vehicleNo);
         const driver = (trip.driverName || '').toLowerCase();
         const mobile = (trip.driverMobile || '').toLowerCase();
+        const cleanMobile = cleanAlphaNum(trip.driverMobile);
+        const partyPhone = (trip.partyPhone || '').toLowerCase();
+        const cleanPartyPhone = cleanAlphaNum(trip.partyPhone);
         const from = (trip.fromCity || '').toLowerCase();
         const to = (trip.toCity || '').toLowerCase();
         const lr = (trip.lrNo || '').toLowerCase();
+        const cleanLr = cleanAlphaNum(trip.lrNo);
         const mat = (trip.material || '').toLowerCase();
+        const remarks = (trip.remarks || '').toLowerCase();
+        const vehicleType = (trip.vehicleType || '').toLowerCase();
 
         return (
           party.includes(query) ||
           veh.includes(query) ||
+          (cleanQuery && cleanVeh.includes(cleanQuery)) ||
           driver.includes(query) ||
           mobile.includes(query) ||
+          (cleanQuery && cleanMobile.includes(cleanQuery)) ||
+          partyPhone.includes(query) ||
+          (cleanQuery && cleanPartyPhone.includes(cleanQuery)) ||
           from.includes(query) ||
           to.includes(query) ||
           lr.includes(query) ||
-          mat.includes(query)
+          (cleanQuery && cleanLr.includes(cleanQuery)) ||
+          mat.includes(query) ||
+          remarks.includes(query) ||
+          vehicleType.includes(query)
         );
       }
 
@@ -446,7 +465,7 @@ export default function TripList({
                   {paginatedTrips.map((trip) => (
                     <tr 
                       key={trip.id || trip.lrNo}
-                      onClick={() => onViewBilty(trip)}
+                      onClick={() => (onViewTrip ? onViewTrip(trip) : onViewBilty(trip))}
                       className="hover:bg-zinc-100/70 dark:hover:bg-zinc-800/60 transition cursor-pointer group"
                     >
                       {/* LR & Date */}
@@ -610,7 +629,7 @@ export default function TripList({
             {paginatedTrips.map((trip) => (
               <div
                 key={trip.id || trip.lrNo}
-                onClick={() => onViewBilty(trip)}
+                onClick={() => (onViewTrip ? onViewTrip(trip) : onViewBilty(trip))}
                 className="bg-white hover:bg-zinc-50/80 dark:bg-zinc-900 dark:hover:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-xs cursor-pointer transition active:scale-[0.99]"
               >
                 {/* Row 1: LR, Date & Status */}

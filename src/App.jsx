@@ -24,6 +24,7 @@ import TripList from './components/TripList';
 import TripModal from './components/TripModal';
 import PartyLedger from './components/PartyLedger';
 import BiltyPrinter from './components/BiltyPrinter';
+import TripDetailsModal from './components/TripDetailsModal';
 import SettingsModal from './components/SettingsModal';
 import PaymentModal from './components/PaymentModal';
 import Analytics from './components/Analytics';
@@ -165,7 +166,14 @@ export default function App() {
   const [isTripModalOpen, setIsTripModalOpen] = useState(false);
   const [editingTrip, setEditingTrip] = useState(null);
   const [viewingBiltyTrip, setViewingBiltyTrip] = useState(null);
+  const [selectedTripDetails, setSelectedTripDetails] = useState(null);
+  const [tripDetailsTab, setTripDetailsTab] = useState('details');
   const [paymentModalTrip, setPaymentModalTrip] = useState(null);
+
+  const handleOpenTripDetails = (trip, tab = 'details') => {
+    setSelectedTripDetails(trip);
+    setTripDetailsTab(tab);
+  };
 
   // Load Database Data directly from Supabase Cloud
   const loadDatabaseData = useCallback(async () => {
@@ -534,7 +542,7 @@ export default function App() {
                   setEditingTrip(null);
                   setIsTripModalOpen(true);
                 }}
-                onViewTrip={(trip) => setViewingBiltyTrip(trip)}
+                onViewTrip={(trip) => handleOpenTripDetails(trip, 'details')}
                 onNavigateTab={handleTabChange}
                 onRecordPayment={(trip) => setPaymentModalTrip(trip)}
               />
@@ -553,7 +561,8 @@ export default function App() {
                   setIsTripModalOpen(true);
                 }}
                 onDeleteTrip={handleDeleteTrip}
-                onViewBilty={(trip) => setViewingBiltyTrip(trip)}
+                onViewTrip={(trip) => handleOpenTripDetails(trip, 'details')}
+                onViewBilty={(trip) => handleOpenTripDetails(trip, 'invoice')}
                 onRecordPayment={(trip) => setPaymentModalTrip(trip)}
               />
             )}
@@ -572,7 +581,7 @@ export default function App() {
                 trips={trips}
                 onSaveParty={handleSaveParty}
                 onDeleteParty={handleDeleteParty}
-                onViewBilty={(trip) => setViewingBiltyTrip(trip)}
+                onViewBilty={(trip) => handleOpenTripDetails(trip, 'invoice')}
               />
             )}
 
@@ -629,6 +638,29 @@ export default function App() {
         trips={trips}
         nextLrNo={getNextLrNo()}
       />
+
+      {/* Comprehensive Trip Details, Transactions & Invoice Modal */}
+      {selectedTripDetails && (
+        <TripDetailsModal
+          trip={selectedTripDetails}
+          isOpen={!!selectedTripDetails}
+          onClose={() => setSelectedTripDetails(null)}
+          onEditTrip={(trip) => {
+            setSelectedTripDetails(null);
+            setEditingTrip(trip);
+            setIsTripModalOpen(true);
+          }}
+          onSaveTrip={async (updatedTrip) => {
+            const saved = await handleSaveTrip(updatedTrip);
+            setSelectedTripDetails(saved || updatedTrip);
+            return saved;
+          }}
+          onDeleteTrip={handleDeleteTrip}
+          company={companySettings}
+          parties={parties}
+          initialTab={tripDetailsTab}
+        />
+      )}
 
       {/* Lorry Receipt (Bilty) Printable Modal */}
       {viewingBiltyTrip && (

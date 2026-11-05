@@ -172,6 +172,21 @@ function getTrips(ss) {
     var row = data[i];
     if (!row[0] && !row[1]) continue; // Skip empty row
 
+    var rawRemarks = String(row[20] || '');
+    var commission = 0;
+    var transactions = [];
+    if (rawRemarks.indexOf('<!--TX_META:') !== -1) {
+      var match = rawRemarks.match(/<!--TX_META:([\s\S]*?)-->/);
+      if (match) {
+        try {
+          var meta = JSON.parse(match[1]);
+          if (meta.commission) commission = Number(meta.commission) || 0;
+          if (meta.transactions && Array.isArray(meta.transactions)) transactions = meta.transactions;
+        } catch(e) {}
+        rawRemarks = rawRemarks.replace(/<!--TX_META:[\s\S]*?-->/g, '').trim();
+      }
+    }
+
     trips.push({
       id: Number(row[0]) || row[0],
       lrNo: String(row[1] || ''),
@@ -189,11 +204,13 @@ function getTrips(ss) {
       amount: Number(row[13]) || 0,
       advance: Number(row[14]) || 0,
       balance: Number(row[15]) || 0,
+      commission: commission,
+      transactions: transactions,
       paymentStatus: String(row[16] || 'Pending'),
       deliveryStatus: String(row[17] || 'Booked'),
       dieselExpense: Number(row[18]) || 0,
       tollExpense: Number(row[19]) || 0,
-      remarks: String(row[20] || ''),
+      remarks: rawRemarks,
       createdAt: row[21] ? new Date(row[21]).toISOString() : new Date().toISOString(),
       updatedAt: row[22] ? new Date(row[22]).toISOString() : new Date().toISOString()
     });

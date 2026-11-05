@@ -8,7 +8,8 @@ import {
   Users, 
   ChevronRight,
   Clock,
-  Phone
+  Phone,
+  Search
 } from 'lucide-react';
 import CasinoCounter from './CasinoCounter';
 import Pagination from './Pagination';
@@ -46,6 +47,7 @@ export default function Dashboard({
     return Number(localStorage.getItem('sai_dashboard_trips_page')) || 1;
   });
   const recentTripsPageSize = 5;
+  const [recentTripSearch, setRecentTripSearch] = useState('');
 
   const [duePartiesPage, setDuePartiesPage] = useState(() => {
     return Number(localStorage.getItem('sai_dashboard_parties_page')) || 1;
@@ -186,8 +188,40 @@ export default function Dashboard({
   }, [allPendingParties, safeDuePartyPage, duePartiesPageSize]);
 
   const allRecentTrips = useMemo(() => {
-    return [...trips].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-  }, [trips]);
+    const cleanAlphaNum = (str) => String(str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const sorted = [...trips].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+    if (!recentTripSearch.trim()) return sorted;
+
+    const query = recentTripSearch.toLowerCase().trim();
+    const cleanQuery = cleanAlphaNum(recentTripSearch);
+
+    return sorted.filter(t => {
+      const veh = (t.vehicleNo || '').toLowerCase();
+      const cleanVeh = cleanAlphaNum(t.vehicleNo);
+      const lr = (t.lrNo || '').toLowerCase();
+      const cleanLr = cleanAlphaNum(t.lrNo);
+      const party = (t.partyName || '').toLowerCase();
+      const driver = (t.driverName || '').toLowerCase();
+      const phone = (t.driverMobile || t.partyPhone || '').toLowerCase();
+      const cleanPhoneNum = cleanAlphaNum(phone);
+      const from = (t.fromCity || '').toLowerCase();
+      const to = (t.toCity || '').toLowerCase();
+
+      return (
+        veh.includes(query) ||
+        (cleanQuery && cleanVeh.includes(cleanQuery)) ||
+        lr.includes(query) ||
+        (cleanQuery && cleanLr.includes(cleanQuery)) ||
+        party.includes(query) ||
+        driver.includes(query) ||
+        phone.includes(query) ||
+        (cleanQuery && cleanPhoneNum.includes(cleanQuery)) ||
+        from.includes(query) ||
+        to.includes(query)
+      );
+    });
+  }, [trips, recentTripSearch]);
 
   const totalRecentPages = Math.max(1, Math.ceil(allRecentTrips.length / recentTripsPageSize));
   const safeRecentPage = Math.min(Math.max(1, recentTripsPage), totalRecentPages);
@@ -418,18 +452,42 @@ export default function Dashboard({
         {/* Recent Trips Log */}
         <div className="lg:col-span-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-5 flex flex-col justify-between shadow-xs">
           <div>
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3">
               <div className="flex items-center gap-2">
                 <Truck className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
                 <h3 className="font-bold text-zinc-900 dark:text-white text-sm sm:text-base">Recent Truck Entries</h3>
               </div>
-              <button
-                onClick={() => onNavigateTab('trips')}
-                className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-white flex items-center gap-0.5 cursor-pointer font-medium"
-              >
-                <span>View all</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
+
+              <div className="flex items-center gap-2">
+                {/* Quick Search */}
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={recentTripSearch}
+                    onChange={(e) => setRecentTripSearch(e.target.value)}
+                    placeholder="Search Vehicle, LR, Party..."
+                    className="pl-7 pr-6 py-1 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white w-44 sm:w-56"
+                  />
+                  {recentTripSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setRecentTripSearch('')}
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-white px-1 cursor-pointer font-bold"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => onNavigateTab('trips')}
+                  className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-white flex items-center gap-0.5 cursor-pointer font-medium shrink-0"
+                >
+                  <span>View all</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
             {allRecentTrips.length === 0 ? (

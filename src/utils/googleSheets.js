@@ -234,8 +234,37 @@ export async function fetchGoogleSheetsData() {
       localStorage.setItem(STORAGE_KEYS.LAST_SYNC, new Date().toISOString());
     } catch {}
 
+    const normalizedTrips = (res.trips || []).map(t => {
+      let remarks = t.remarks || '';
+      let commission = Number(t.commission) || 0;
+      let transactions = Array.isArray(t.transactions) ? t.transactions : [];
+
+      if (remarks.includes('<!--TX_META:')) {
+        const match = remarks.match(/<!--TX_META:([\s\S]*?)-->/);
+        if (match) {
+          try {
+            const meta = JSON.parse(match[1]);
+            if (meta.commission !== undefined && !commission) {
+              commission = Number(meta.commission) || 0;
+            }
+            if (Array.isArray(meta.transactions) && transactions.length === 0) {
+              transactions = meta.transactions;
+            }
+          } catch {}
+          remarks = remarks.replace(/<!--TX_META:[\s\S]*?-->/g, '').trim();
+        }
+      }
+
+      return {
+        ...t,
+        commission,
+        transactions,
+        remarks
+      };
+    });
+
     return {
-      trips: res.trips || [],
+      trips: normalizedTrips,
       parties: res.parties || [],
       settings: settingsMap,
       source: 'google_sheets',
@@ -259,8 +288,29 @@ export async function fetchGoogleSheetsData() {
  * Save trip record to Google Sheets.
  */
 export async function saveTripToGoogleSheets(tripData) {
-  const res = await callAppsScript('saveTrip', { trip: tripData });
-  return res.trip || tripData;
+  let remarksText = (tripData.remarks || '').replace(/<!--TX_META:[\s\S]*?-->/g, '').trim();
+  const meta = {
+    commission: Number(tripData.commission) || 0,
+    transactions: Array.isArray(tripData.transactions) ? tripData.transactions : []
+  };
+  const combinedRemarks = remarksText 
+    ? `${remarksText}\n<!--TX_META:${JSON.stringify(meta)}-->`
+    : `<!--TX_META:${JSON.stringify(meta)}-->`;
+
+  const payload = {
+    ...tripData,
+    commission: Number(tripData.commission) || 0,
+    transactions: Array.isArray(tripData.transactions) ? tripData.transactions : [],
+    remarks: combinedRemarks
+  };
+
+  const res = await callAppsScript('saveTrip', { trip: payload });
+  return {
+    ...(res.trip || tripData),
+    commission: Number(tripData.commission) || 0,
+    transactions: Array.isArray(tripData.transactions) ? tripData.transactions : [],
+    remarks: remarksText
+  };
 }
 
 /**

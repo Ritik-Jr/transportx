@@ -97,6 +97,7 @@ export default function TripModal({
     amount: '',
     advance: '0',
     balance: '0',
+    commission: '0',
     paymentStatus: 'Pending',
     deliveryStatus: 'Booked',
     remarks: ''
@@ -105,6 +106,32 @@ export default function TripModal({
   const [errors, setErrors] = useState({});
   const [partyMode, setPartyMode] = useState('existing'); // 'existing' | 'new'
   const [selectedPartyId, setSelectedPartyId] = useState('');
+
+  // Extract previous unique drivers for instant reuse
+  const driverSuggestions = useMemo(() => {
+    const map = new Map();
+    trips.forEach(t => {
+      const name = (t.driverName || '').trim();
+      if (name) {
+        const key = name.toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, {
+            name: t.driverName.trim(),
+            mobile: (t.driverMobile || '').trim(),
+            vehicleNo: (t.vehicleNo || '').trim(),
+            vehicleType: (t.vehicleType || '').trim(),
+            count: 1
+          });
+        } else {
+          const item = map.get(key);
+          item.count++;
+          if (!item.mobile && t.driverMobile) item.mobile = t.driverMobile.trim();
+          if (!item.vehicleNo && t.vehicleNo) item.vehicleNo = t.vehicleNo.trim();
+        }
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => b.count - a.count);
+  }, [trips]);
 
   // Only initialize/reset when modal transitions from closed to open, or when editing target changes
   useEffect(() => {
@@ -134,6 +161,7 @@ export default function TripModal({
           amount: String(editingTrip.amount || ''),
           advance: String(editingTrip.advance || '0'),
           balance: String(editingTrip.balance || '0'),
+          commission: String(editingTrip.commission || '0'),
           remarks: editingTrip.remarks || ''
         });
 
@@ -167,6 +195,7 @@ export default function TripModal({
           amount: '',
           advance: '0',
           balance: '0',
+          commission: '0',
           paymentStatus: 'Pending',
           deliveryStatus: 'Booked',
           remarks: ''
@@ -401,8 +430,37 @@ export default function TripModal({
       amount: parseFloat(formData.amount) || 0,
       advance: parseFloat(formData.advance) || 0,
       balance: parseFloat(formData.balance) || 0,
+      commission: parseFloat(formData.commission) || 0,
       vehicleNo: formData.vehicleNo.toUpperCase().trim()
     };
+
+    // Initialize or preserve transactions
+    let transactions = editingTrip?.transactions ? [...editingTrip.transactions] : [];
+    if (!editingTrip) {
+      if (payload.advance > 0 && transactions.length === 0) {
+        transactions.push({
+          id: 'tx-' + Date.now() + '-adv',
+          type: 'payment',
+          category: 'Advance Received',
+          amount: payload.advance,
+          date: formData.date || new Date().toISOString().split('T')[0],
+          mode: 'Cash / Transfer',
+          notes: 'Booking advance payment'
+        });
+      }
+      if (payload.commission > 0 && !transactions.some(t => (t.category || '').toLowerCase().includes('commission'))) {
+        transactions.push({
+          id: 'tx-' + Date.now() + '-comm',
+          type: 'expense',
+          category: 'Commission / Brokerage',
+          amount: payload.commission,
+          date: formData.date || new Date().toISOString().split('T')[0],
+          mode: 'Brokerage',
+          notes: 'Agent / Broker commission charge'
+        });
+      }
+    }
+    payload.transactions = transactions;
 
     // Preserve existing expense values only if editing an older trip record
     if (editingTrip && editingTrip.dieselExpense !== undefined) {
@@ -919,37 +977,83 @@ export default function TripModal({
                       </select>
                     </div>
 
-                    <div className="w-full min-w-0">
-                      <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                        Driver Name *
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.driverName}
-                        onChange={(e) => {
-                          setFormData({ ...formData, driverName: e.target.value });
-                          if (errors.driverName) setErrors(prev => ({ ...prev, driverName: null }));
-                        }}
-                        placeholder="e.g. Rameshwar Yadav"
-                        className={`w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border rounded-xl text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border ${
-                          errors.driverName ? 'border-rose-400' : 'border-zinc-200 dark:border-zinc-800'
-                        }`}
-                        required
-                      />
-                      {errors.driverName && <span className="text-rose-500 text-[11px] mt-0.5 block">{errors.driverName}</span>}
-                    </div>
+                    <div className="w-full min-w-0 sm:col-span-2 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                          Driver Name *
+                        </label>
+                        {driverSuggestions.length > 0 && (
+                          <span className="text-[11px] text-zinc-400">
+                            {driverSuggestions.length} previous driver{driverSuggestions.length > 1 ? 's' : ''} available
+                          </span>
+                        )}
+                      </div>
 
-                    <div className="w-full min-w-0">
-                      <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                        Driver Mobile / Phone
-                      </label>
-                      <input
-                        type="tel"
-                        value={formData.driverMobile}
-                        onChange={(e) => setFormData({ ...formData, driverMobile: e.target.value })}
-                        placeholder="e.g. 9821456789"
-                        className="w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
-                      />
+                      {/* Previous Drivers Quick-Select Chips */}
+                      {driverSuggestions.length > 0 && (
+                        <div className="p-2.5 bg-zinc-100/70 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-800 rounded-xl space-y-1.5">
+                          <div className="flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
+                            <span className="font-medium">Quick Select from Previous Trips:</span>
+                            <span className="text-[10px] text-zinc-400">Auto-fills phone & truck</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                            {driverSuggestions.slice(0, 6).map((d) => (
+                              <button
+                                key={d.name}
+                                type="button"
+                                onClick={() => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    driverName: d.name,
+                                    driverMobile: d.mobile || prev.driverMobile,
+                                    vehicleNo: (!prev.vehicleNo && d.vehicleNo) ? d.vehicleNo : prev.vehicleNo,
+                                    vehicleType: (!prev.vehicleNo && d.vehicleType) ? normalizeVehicleType(d.vehicleType) : prev.vehicleType
+                                  }));
+                                  if (errors.driverName) setErrors(prev => ({ ...prev, driverName: null }));
+                                  if (d.vehicleNo && errors.vehicleNo) setErrors(prev => ({ ...prev, vehicleNo: null }));
+                                }}
+                                className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition cursor-pointer flex items-center gap-1.5 ${
+                                  formData.driverName?.trim().toLowerCase() === d.name.toLowerCase()
+                                    ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 border-zinc-900 dark:border-white font-bold'
+                                    : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600'
+                                }`}
+                              >
+                                <span>{d.name}</span>
+                                {d.mobile && <span className="text-[10px] opacity-70 font-mono">({d.mobile.slice(-4)})</span>}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="w-full min-w-0">
+                          <input
+                            type="text"
+                            value={formData.driverName}
+                            onChange={(e) => {
+                              setFormData({ ...formData, driverName: e.target.value });
+                              if (errors.driverName) setErrors(prev => ({ ...prev, driverName: null }));
+                            }}
+                            placeholder="e.g. Rameshwar Yadav"
+                            className={`w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border rounded-xl text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border ${
+                              errors.driverName ? 'border-rose-400' : 'border-zinc-200 dark:border-zinc-800'
+                            }`}
+                            required
+                          />
+                          {errors.driverName && <span className="text-rose-500 text-[11px] mt-0.5 block">{errors.driverName}</span>}
+                        </div>
+
+                        <div className="w-full min-w-0">
+                          <input
+                            type="tel"
+                            value={formData.driverMobile}
+                            onChange={(e) => setFormData({ ...formData, driverMobile: e.target.value })}
+                            placeholder="Driver Phone (e.g. 9821456789)"
+                            className="w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -986,10 +1090,11 @@ export default function TripModal({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full min-w-0">
+                  {/* 4 Core Amount Entries */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full min-w-0">
                     <div className="w-full min-w-0">
                       <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                        Total Freight (₹) *
+                        1. Total Freight (₹) *
                       </label>
                       <input
                         type="number"
@@ -1008,7 +1113,7 @@ export default function TripModal({
 
                     <div className="w-full min-w-0">
                       <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                        Advance Paid (₹)
+                        2. Advance Paid (₹)
                       </label>
                       <input
                         type="number"
@@ -1023,7 +1128,7 @@ export default function TripModal({
 
                     <div className="w-full min-w-0">
                       <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                        Balance Due (₹)
+                        3. Balance Due (₹)
                       </label>
                       <input
                         type="text"
@@ -1032,6 +1137,21 @@ export default function TripModal({
                         className={`w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-xl font-bold text-sm box-border ${
                           parseFloat(formData.balance) > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
                         }`}
+                      />
+                    </div>
+
+                    <div className="w-full min-w-0">
+                      <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
+                        4. Commission (₹)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={formData.commission || ''}
+                        onChange={(e) => setFormData({ ...formData, commission: e.target.value })}
+                        placeholder="0"
+                        className="w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-bold text-amber-700 dark:text-amber-400 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
                       />
                     </div>
                   </div>
