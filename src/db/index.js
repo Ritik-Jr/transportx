@@ -22,6 +22,7 @@ import {
   syncAllToGoogleSheets,
   getDbProvider
 } from '../utils/googleSheets';
+import { formatDate } from '../utils/dateFormatter';
 
 export { 
   SUPABASE_SCHEMA_SQL, 
@@ -315,7 +316,7 @@ export function exportTripsToCsv(trips = []) {
 
     return [
       t.lrNo || '',
-      t.date || '',
+      formatDate(t.date, ''),
       `"${(t.partyName || '').replace(/"/g, '""')}"`,
       t.partyPhone || '',
       t.vehicleNo || '',

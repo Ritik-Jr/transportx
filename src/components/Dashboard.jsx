@@ -14,6 +14,7 @@ import {
 import CasinoCounter from './CasinoCounter';
 import Pagination from './Pagination';
 import PeriodDropdown, { PERIOD_OPTIONS } from './PeriodDropdown';
+import { formatDate } from '../utils/dateFormatter';
 
 export default function Dashboard({ 
   trips = [], 
@@ -518,7 +519,7 @@ export default function Dashboard({
                         >
                           <td className="py-3.5 px-3.5">
                             <span className="font-mono font-bold text-zinc-900 dark:text-white block">{t.lrNo}</span>
-                            <span className="text-[10px] text-zinc-400 mt-0.5 block">{t.date}</span>
+                            <span className="text-[10px] text-zinc-400 mt-0.5 block">{formatDate(t.date)}</span>
                           </td>
                           <td className="py-3.5 px-3.5">
                             <span className="font-mono font-semibold text-zinc-800 dark:text-zinc-200 block">{t.vehicleNo}</span>
@@ -583,7 +584,7 @@ export default function Dashboard({
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="font-mono font-bold text-zinc-900 dark:text-white text-base">{t.lrNo}</span>
-                          <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">• {t.date}</span>
+                          <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">• {formatDate(t.date)}</span>
                         </div>
                         <div>{getStatusBadge(t.paymentStatus)}</div>
                       </div>

@@ -12,6 +12,7 @@ import CasinoCounter from './CasinoCounter';
 import Pagination from './Pagination';
 import { formatPartyReminderWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
 import PeriodDropdown, { PERIOD_OPTIONS } from './PeriodDropdown';
+import { formatDate } from '../utils/dateFormatter';
 
 export default function Analytics({ trips = [], parties = [], onNavigateTab }) {
   // Persisted period state (defaults to 'today')
@@ -593,7 +594,7 @@ export default function Analytics({ trips = [], parties = [], onNavigateTab }) {
                 {/* Hover Tooltip Overlay */}
                 {hoveredDataPoint && (
                   <div className="absolute top-2 right-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[11px] p-2 rounded-xl shadow-lg border border-zinc-700 dark:border-zinc-200 pointer-events-none transition-all">
-                    <div className="font-semibold">{hoveredDataPoint.data.date}</div>
+                    <div className="font-semibold">{formatDate(hoveredDataPoint.data.date)}</div>
                     <div className="text-[10px] opacity-80 mt-0.5">
                       {activeMetricTab === 'freight' && `Freight: ${formatCurrency(hoveredDataPoint.data.freight)}`}
                       {activeMetricTab === 'cashflow' && `Advances: ${formatCurrency(hoveredDataPoint.data.advance)}`}
@@ -607,7 +608,7 @@ export default function Analytics({ trips = [], parties = [], onNavigateTab }) {
           </div>
 
           <div className="flex items-center justify-between text-[11px] text-zinc-400 border-t border-zinc-100 dark:border-zinc-800 pt-3 mt-2">
-            <span>Range: {analyticsData.trendData[0]?.date || '—'} to {analyticsData.trendData[analyticsData.trendData.length - 1]?.date || '—'}</span>
+            <span>Range: {formatDate(analyticsData.trendData[0]?.date)} to {formatDate(analyticsData.trendData[analyticsData.trendData.length - 1]?.date)}</span>
             <span>Total Shipments: <strong className="text-zinc-800 dark:text-zinc-200">{analyticsData.tripCount}</strong></span>
           </div>
         </div>

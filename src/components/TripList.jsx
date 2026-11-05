@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import Pagination from './Pagination';
 import { formatTripWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
+import { formatDate } from '../utils/dateFormatter';
 
 const STATUS_OPTIONS = [
   { id: 'ALL', label: 'All Status', shortLabel: 'All', icon: ArrowUpDown, color: 'text-zinc-400' },
@@ -476,7 +477,7 @@ export default function TripList({
                           {trip.lrNo || 'N/A'}
                         </span>
                         <span className="text-[10px] text-zinc-400 block mt-0.5">
-                          {trip.date}
+                          {formatDate(trip.date)}
                         </span>
                       </td>
 
@@ -638,7 +639,7 @@ export default function TripList({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="font-mono font-bold text-zinc-900 dark:text-white text-base">{trip.lrNo}</span>
-                    <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">• {trip.date}</span>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">• {formatDate(trip.date)}</span>
                   </div>
                   <div>
                     {getPaymentBadge(trip.paymentStatus)}

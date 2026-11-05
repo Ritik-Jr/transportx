@@ -12,6 +12,7 @@ import {
   RefreshCw 
 } from 'lucide-react';
 import { generateUniqueLrId } from '../utils/lrGenerator';
+import { formatDate } from '../utils/dateFormatter';
 import TruckSuccessAnimation from './TruckSuccessAnimation';
 
 const VEHICLE_TYPES = [
@@ -134,6 +135,32 @@ export default function TripModal({
     return Array.from(map.values()).sort((a, b) => b.count - a.count);
   }, [trips]);
 
+  // Extract previous unique trucks for instant fleet suggestions & autofill
+  const truckSuggestions = useMemo(() => {
+    const map = new Map();
+    trips.forEach(t => {
+      const vNo = (t.vehicleNo || '').trim().toUpperCase();
+      if (vNo) {
+        if (!map.has(vNo)) {
+          map.set(vNo, {
+            vehicleNo: vNo,
+            vehicleType: normalizeVehicleType(t.vehicleType),
+            driverName: (t.driverName || '').trim(),
+            driverMobile: (t.driverMobile || '').trim(),
+            count: 1
+          });
+        } else {
+          const item = map.get(vNo);
+          item.count++;
+          if (!item.vehicleType && t.vehicleType) item.vehicleType = normalizeVehicleType(t.vehicleType);
+          if (!item.driverName && t.driverName) item.driverName = t.driverName.trim();
+          if (!item.driverMobile && t.driverMobile) item.driverMobile = t.driverMobile.trim();
+        }
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => b.count - a.count);
+  }, [trips]);
+
   // Only initialize/reset when modal transitions from closed to open, or when editing target changes
   useEffect(() => {
     if (!isOpen) {
@@ -247,16 +274,15 @@ export default function TripModal({
     const amtStr = e.target.value;
     const amt = parseFloat(amtStr) || 0;
     const adv = parseFloat(formData.advance) || 0;
-    const bal = Math.max(0, amt - adv);
 
-    let status = 'Pending';
+    let status = formData.paymentStatus || 'Pending';
     if (adv >= amt && amt > 0) status = 'Paid';
     else if (adv > 0 && adv < amt) status = 'Partial';
 
+    // Do NOT autofill balance - user will fill that manually
     setFormData(prev => ({
       ...prev,
       amount: amtStr,
-      balance: String(bal),
       paymentStatus: status
     }));
   };
@@ -265,16 +291,15 @@ export default function TripModal({
     const advStr = e.target.value;
     const adv = parseFloat(advStr) || 0;
     const amt = parseFloat(formData.amount) || 0;
-    const bal = Math.max(0, amt - adv);
 
-    let status = 'Pending';
+    let status = formData.paymentStatus || 'Pending';
     if (adv >= amt && amt > 0) status = 'Paid';
     else if (adv > 0 && adv < amt) status = 'Partial';
 
+    // Do NOT autofill balance - user will fill that manually
     setFormData(prev => ({
       ...prev,
       advance: advStr,
-      balance: String(bal),
       paymentStatus: status
     }));
   };
@@ -734,9 +759,16 @@ export default function TripModal({
 
                     {/* Trip Date with Mobile Overflow Fix */}
                     <div className="w-full min-w-0 max-w-full overflow-hidden">
-                      <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                        Trip Date *
-                      </label>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                          Trip Date *
+                        </label>
+                        {formData.date && (
+                          <span className="text-[11px] font-mono font-bold text-zinc-500 dark:text-zinc-400">
+                            {formatDate(formData.date)}
+                          </span>
+                        )}
+                      </div>
                       <input
                         type="date"
                         value={formData.date}
@@ -942,17 +974,75 @@ export default function TripModal({
               {/* Step 3: Truck & Driver */}
               {currentStep === 3 && (
                 <div className="space-y-4 animate-in fade-in duration-150">
+                  
+                  {/* Previous Trucks Quick-Select Chips */}
+                  {truckSuggestions.length > 0 && (
+                    <div className="p-2.5 bg-zinc-100/70 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-800 rounded-xl space-y-1.5">
+                      <div className="flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
+                        <span className="font-medium flex items-center gap-1.5">
+                          <Truck className="w-3.5 h-3.5" />
+                          <span>Quick Select Truck from Fleet ({truckSuggestions.length}):</span>
+                        </span>
+                        <span className="text-[10px] text-zinc-400">Auto-fills type & driver</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                        {truckSuggestions.slice(0, 8).map((trk) => (
+                          <button
+                            key={trk.vehicleNo}
+                            type="button"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                vehicleNo: trk.vehicleNo,
+                                vehicleType: trk.vehicleType || prev.vehicleType,
+                                driverName: (!prev.driverName && trk.driverName) ? trk.driverName : prev.driverName,
+                                driverMobile: (!prev.driverMobile && trk.driverMobile) ? trk.driverMobile : prev.driverMobile
+                              }));
+                              if (errors.vehicleNo) setErrors(prev => ({ ...prev, vehicleNo: null }));
+                              if (trk.driverName && errors.driverName) setErrors(prev => ({ ...prev, driverName: null }));
+                            }}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition cursor-pointer flex items-center gap-1.5 ${
+                              formData.vehicleNo?.trim().toUpperCase() === trk.vehicleNo
+                                ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 border-zinc-900 dark:border-white font-bold'
+                                : 'bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600'
+                            }`}
+                          >
+                            <span className="font-mono font-bold">{trk.vehicleNo}</span>
+                            <span className="text-[10px] opacity-70">({trk.vehicleType})</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full min-w-0">
                     <div className="w-full min-w-0">
-                      <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-                        Vehicle No. (Truck No) *
-                      </label>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                          Vehicle No. (Truck No) *
+                        </label>
+                        {truckSuggestions.length > 0 && (
+                          <span className="text-[10px] text-zinc-400">
+                            Type or select from suggestions
+                          </span>
+                        )}
+                      </div>
                       <input
                         type="text"
+                        list="truck-suggestions-datalist"
                         value={formData.vehicleNo}
                         onChange={(e) => {
-                          setFormData({ ...formData, vehicleNo: e.target.value.toUpperCase() });
+                          const val = e.target.value.toUpperCase();
+                          const matched = truckSuggestions.find(t => t.vehicleNo === val);
+                          setFormData(prev => ({
+                            ...prev,
+                            vehicleNo: val,
+                            vehicleType: matched ? matched.vehicleType : prev.vehicleType,
+                            driverName: (matched && !prev.driverName && matched.driverName) ? matched.driverName : prev.driverName,
+                            driverMobile: (matched && !prev.driverMobile && matched.driverMobile) ? matched.driverMobile : prev.driverMobile
+                          }));
                           if (errors.vehicleNo) setErrors(prev => ({ ...prev, vehicleNo: null }));
+                          if (matched && matched.driverName && errors.driverName) setErrors(prev => ({ ...prev, driverName: null }));
                         }}
                         placeholder="e.g. MH 12 RN 8845"
                         className={`w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border rounded-xl font-mono uppercase font-bold text-sm sm:text-xs text-zinc-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border ${
@@ -960,6 +1050,13 @@ export default function TripModal({
                         }`}
                         required
                       />
+                      <datalist id="truck-suggestions-datalist">
+                        {truckSuggestions.map(t => (
+                          <option key={t.vehicleNo} value={t.vehicleNo}>
+                            {t.vehicleType}{t.driverName ? ` • Driver: ${t.driverName}` : ''}
+                          </option>
+                        ))}
+                      </datalist>
                       {errors.vehicleNo && <span className="text-rose-500 text-[11px] mt-0.5 block">{errors.vehicleNo}</span>}
                     </div>
 
@@ -1148,12 +1245,13 @@ export default function TripModal({
                         3. Balance Due (₹)
                       </label>
                       <input
-                        type="text"
+                        type="number"
+                        min="0"
+                        step="any"
                         value={formData.balance}
-                        readOnly
-                        className={`w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-xl font-bold text-sm box-border ${
-                          parseFloat(formData.balance) > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
-                        }`}
+                        onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
+                        placeholder="0"
+                        className="w-full min-w-0 px-3.5 py-2.5 sm:py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl font-bold text-rose-600 dark:text-rose-400 text-sm focus:outline-none focus:ring-1 focus:ring-zinc-900 dark:focus:ring-white box-border"
                       />
                     </div>
 

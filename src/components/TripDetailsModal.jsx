@@ -21,9 +21,11 @@ import {
   ArrowRight,
   TrendingUp,
   Copy,
-  Check
+  Check,
+  Loader2
 } from 'lucide-react';
 import { formatTripWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
+import { formatDate } from '../utils/dateFormatter';
 
 const TRANSACTION_CATEGORIES = [
   { id: 'customer_payment', label: 'Party Payment (Received)', type: 'payment', icon: Coins, color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800' },
@@ -71,6 +73,7 @@ export default function TripDetailsModal({
     notes: ''
   });
   const [txError, setTxError] = useState('');
+  const [isLoggingTx, setIsLoggingTx] = useState(false);
 
   // Keep active tab in sync when opening directly to invoice or details
   React.useEffect(() => {
@@ -232,8 +235,14 @@ export default function TripDetailsModal({
       transactions: updatedTransactions
     };
 
-    if (onSaveTrip) {
-      await onSaveTrip(updatedTrip);
+    setIsLoggingTx(true);
+    try {
+      if (onSaveTrip) {
+        await onSaveTrip(updatedTrip);
+      }
+      await new Promise(r => setTimeout(r, 450));
+    } finally {
+      setIsLoggingTx(false);
     }
   };
 
@@ -321,8 +330,14 @@ export default function TripDetailsModal({
       notes: ''
     });
 
-    if (onSaveTrip) {
-      await onSaveTrip(updatedTrip);
+    setIsLoggingTx(true);
+    try {
+      if (onSaveTrip) {
+        await onSaveTrip(updatedTrip);
+      }
+      await new Promise(r => setTimeout(r, 450));
+    } finally {
+      setIsLoggingTx(false);
     }
   };
 
@@ -381,7 +396,7 @@ export default function TripDetailsModal({
                   </span>
                 </div>
                 <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
-                  {trip.vehicleNo} • {trip.fromCity} ➔ {trip.toCity} ({trip.date})
+                  {trip.vehicleNo} • {trip.fromCity} ➔ {trip.toCity} ({formatDate(trip.date)})
                 </p>
               </div>
             </div>
@@ -482,7 +497,9 @@ export default function TripDetailsModal({
                     <Truck className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
-                    <div className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">Active Transport Route</div>
+                    <div className="text-[11px] text-zinc-300 uppercase tracking-wider font-semibold">
+                      Active Transport Route • {formatDate(trip.date)}
+                    </div>
                     <div className="text-base sm:text-lg font-bold flex items-center gap-2">
                       <span>{trip.fromCity}</span>
                       <ArrowRight className="w-4 h-4 text-emerald-400" />
@@ -848,9 +865,11 @@ export default function TripDetailsModal({
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold transition cursor-pointer shadow-xs active:scale-95"
+                      disabled={isLoggingTx}
+                      className="px-4 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold transition cursor-pointer shadow-xs active:scale-95 disabled:opacity-50 disabled:cursor-wait flex items-center gap-1.5"
                     >
-                      Save Transaction
+                      {isLoggingTx && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                      <span>{isLoggingTx ? 'Saving...' : 'Save Transaction'}</span>
                     </button>
                   </div>
                 </form>
@@ -862,7 +881,8 @@ export default function TripDetailsModal({
 
                   <button
                     onClick={() => handleOpenAddTx('fuel')}
-                    className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs transition active:scale-95"
+                    disabled={isLoggingTx}
+                    className="px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs transition active:scale-95 disabled:opacity-50"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Transaction</span>
@@ -870,8 +890,20 @@ export default function TripDetailsModal({
                 </div>
               )}
 
-              {/* Transactions Log Table */}
-              {transactions.length === 0 ? (
+              {/* Transactions Log Section with Loader */}
+              {isLoggingTx ? (
+                <div className="p-8 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl flex flex-col items-center justify-center space-y-3 animate-in fade-in duration-150 shadow-xs">
+                  <div className="w-8 h-8 rounded-full border-2 border-zinc-300 dark:border-zinc-700 border-t-zinc-900 dark:border-t-white animate-spin" />
+                  <div className="text-center">
+                    <div className="text-xs font-bold text-zinc-900 dark:text-white">
+                      Updating Transaction Log & Tally...
+                    </div>
+                    <div className="text-[11px] text-zinc-400 mt-0.5">
+                      Syncing changes to cloud accounts and refreshing entries
+                    </div>
+                  </div>
+                </div>
+              ) : transactions.length === 0 ? (
                 <div className="p-8 text-center bg-zinc-50 dark:bg-zinc-950 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl space-y-2">
                   <Receipt className="w-8 h-8 text-zinc-300 dark:text-zinc-700 mx-auto" />
                   <div className="text-xs font-bold text-zinc-700 dark:text-zinc-300">No transactions recorded yet</div>
@@ -911,7 +943,7 @@ export default function TripDetailsModal({
                           return (
                             <tr key={tx.id} className="hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40 transition">
                               <td className="py-3 px-3.5 text-zinc-600 dark:text-zinc-400 font-mono text-[11px]">
-                                {tx.date}
+                                {formatDate(tx.date)}
                               </td>
 
                               <td className="py-3 px-3.5">
@@ -1030,7 +1062,7 @@ export default function TripDetailsModal({
                   <div className="p-3 bg-zinc-100 border border-zinc-300 rounded-xl text-right sm:min-w-[160px] self-start">
                     <div className="text-[10px] font-bold text-zinc-500 uppercase">LR / Bilty No.</div>
                     <div className="text-lg sm:text-xl font-black font-mono text-zinc-950">{trip.lrNo}</div>
-                    <div className="text-xs font-semibold text-zinc-600 mt-0.5">Date: {trip.date}</div>
+                    <div className="text-xs font-semibold text-zinc-600 mt-0.5">Date: {formatDate(trip.date)}</div>
                   </div>
                 </div>
 

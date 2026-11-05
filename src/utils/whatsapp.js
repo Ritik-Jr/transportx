@@ -8,16 +8,8 @@ export function formatCurrency(val) {
   return '₹' + Number(val || 0).toLocaleString('en-IN');
 }
 
-export function formatDate(dStr) {
-  if (!dStr) return '';
-  try {
-    const d = new Date(dStr + (dStr.includes('T') ? '' : 'T00:00:00'));
-    if (isNaN(d.getTime())) return dStr;
-    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-  } catch (_) {
-    return dStr;
-  }
-}
+import { formatDate } from './dateFormatter';
+export { formatDate };
 
 export function getWhatsAppUrl(phone, text) {
   const cleanPhone = (phone || '').replace(/\D/g, '');

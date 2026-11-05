@@ -6,6 +6,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { formatDate } from '../utils/dateFormatter';
 
 export default function PaymentModal({ trip, isOpen, onClose, onSavePayment }) {
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -42,7 +43,7 @@ export default function PaymentModal({ trip, isOpen, onClose, onSavePayment }) {
       } catch (err) {}
     }
 
-    const additionalRemark = `Recv ₹${numPayment} via ${paymentMode}${paymentRef ? ` (Ref: ${paymentRef})` : ''} on ${new Date().toISOString().split('T')[0]}`;
+    const additionalRemark = `Recv ₹${numPayment} via ${paymentMode}${paymentRef ? ` (Ref: ${paymentRef})` : ''} on ${formatDate(new Date())}`;
     const updatedRemarks = trip.remarks ? `${trip.remarks} | ${additionalRemark}` : additionalRemark;
 
     onSavePayment({

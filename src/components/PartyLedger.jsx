@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import Pagination from './Pagination';
 import { formatPartyReminderWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
+import { formatDate } from '../utils/dateFormatter';
 
 export default function PartyLedger({ 
   parties = [], 
@@ -531,7 +532,7 @@ export default function PartyLedger({
                           >
                             <td className="py-3 px-3.5 whitespace-nowrap">
                               <span className="font-mono font-bold text-zinc-900 dark:text-white block">{t.lrNo}</span>
-                              <span className="text-[10px] text-zinc-400">{t.date}</span>
+                              <span className="text-[10px] text-zinc-400">{formatDate(t.date)}</span>
                             </td>
                             <td className="py-3 px-3.5 whitespace-nowrap">
                               <span className="font-mono font-medium text-zinc-800 dark:text-zinc-200 block">{t.vehicleNo}</span>
@@ -590,7 +591,7 @@ export default function PartyLedger({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
                             <span className="font-mono font-bold text-zinc-900 dark:text-white text-xs">{t.lrNo}</span>
-                            <span className="text-[10px] text-zinc-400">• {t.date}</span>
+                            <span className="text-[10px] text-zinc-400">• {formatDate(t.date)}</span>
                           </div>
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                             t.paymentStatus === 'Paid'

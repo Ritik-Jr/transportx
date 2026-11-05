@@ -1,6 +1,7 @@
 import React from 'react';
 import { Printer, X, Share2 } from 'lucide-react';
 import { formatTripWhatsAppMessage, openWhatsApp } from '../utils/whatsapp';
+import { formatDate } from '../utils/dateFormatter';
 
 export default function BiltyPrinter({ trip, company = {}, onClose }) {
   if (!trip) return null;
@@ -101,7 +102,7 @@ export default function BiltyPrinter({ trip, company = {}, onClose }) {
               </div>
               <div>
                 <span className="text-[9px] text-zinc-500 block uppercase font-semibold">Date</span>
-                <span className="font-semibold text-zinc-900 text-xs">{trip.date}</span>
+                <span className="font-semibold text-zinc-900 text-xs">{formatDate(trip.date)}</span>
               </div>
               <div>
                 <span className="text-[9px] text-zinc-500 block uppercase font-semibold">Truck Number</span>
